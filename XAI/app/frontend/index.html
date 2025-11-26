@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Médico</title>
+    <link rel="stylesheet" href="Styles.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo"></div>
+
+            <nav>
+                <!-- reemplazo de la lista por botones con tooltips y active -->
+                <button class="icon-btn active" data-tooltip="Inicio"></button>
+                <button class="icon-btn" data-tooltip="Estadísticas"></button>
+                <button class="icon-btn" data-tooltip="Pacientes"></button>
+                <button class="icon-btn" data-tooltip="Configuración"></button>
+            </nav>
+
+            <div class="bottom-actions">
+                <button class="icon-btn" data-tooltip="Ayuda"></button>
+                <img src="https://via.placeholder.com/40" alt="User" style="width:40px;height:40px;border-radius:8px;border:2px solid rgba(255,255,255,0.03)">
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <div class="header-left">
+                    <h1 class="header-title">Bienvenido Médico</h1>
+                    <div class="search">
+                        <input type="search" placeholder="Buscar paciente, estudio..." />
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="badge">Notificaciones</div>
+                    <div class="badge">Perfil</div>
+                </div>
+            </header>
+
+            <div class="main-grid">
+                <!-- Left column -->
+                <section>
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">Enfermedades más comunes</div>
+                            <button class="kebab">⋯</button>
+                        </div>
+                        <div class="chart-area">
+                            <div class="chart-placeholder">Gráfico (canvas/Chart.js)</div>
+                        </div>
+                    </div>
+
+                    <div class="card patients-card">
+                        <div class="card-header">
+                            <div class="card-title">Pacientes</div>
+                            <button class="kebab">⋯</button>
+                        </div>
+                        <div class="patient-list">
+                            <!-- Fila de paciente (estructura horizontal: left | center | right) -->
+                            <div class="patient-row">
+                                <div class="patient-left">
+                                    <img class="patient-avatar" src="https://i.pravatar.cc/44?img=1" alt="Ana">
+                                    <div class="patient-info">
+                                        <div class="patient-name">Ana</div>
+                                    </div>
+                                </div>
+
+                                <div class="patient-center">
+                                    <div class="patient-revisions">4 revisiones</div>
+                                    <div class="patient-handle">@reallygreatsite</div>
+                                </div>
+
+                                <div class="patient-right">
+                                    <div class="patient-status">Medio</div>
+                                </div>
+                            </div>
+
+                            <div class="patient-row">
+                                <div class="patient-left">
+                                    <img class="patient-avatar" src="https://i.pravatar.cc/44?img=2" alt="Cristian">
+                                    <div class="patient-info">
+                                        <div class="patient-name">Cristian</div>
+                                    </div>
+                                </div>
+                                <div class="patient-center">
+                                    <div class="patient-revisions">7 revisiones</div>
+                                    <div class="patient-handle">@reallygreatsite</div>
+                                </div>
+                                <div class="patient-right">
+                                    <div class="patient-status">Alto</div>
+                                </div>
+                            </div>
+
+                            <div class="patient-row">
+                                <div class="patient-left">
+                                    <img class="patient-avatar" src="https://i.pravatar.cc/44?img=3" alt="Laura">
+                                    <div class="patient-info">
+                                        <div class="patient-name">Laura</div>
+                                    </div>
+                                </div>
+                                <div class="patient-center">
+                                    <div class="patient-revisions">2 revisiones</div>
+                                    <div class="patient-handle">@reallygreatsite</div>
+                                </div>
+                                <div class="patient-right">
+                                    <div class="patient-status">Bajo</div>
+                                </div>
+                            </div>
+
+                            <!-- filas adicionales (si las hay) siguen misma estructura -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right column -->
+                <aside class="right-stack">
+                    <!-- tarjeta que redirige a la página de subida -->
+                    <a class="card upload-link" href="uploadimage.html" title="Subir Radiografía">
+                        <div class="card-title">Subir Radiografía</div>
+                        <button class="kebab" aria-label="Más">⋯</button>
+                    </a>
+
+                    <div class="card">
+                        <div class="card-title">Aplicaciones XAI</div>
+                        <button class="kebab" aria-label="Más">⋯</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Guía de uso</div>
+                        <button class="kebab" aria-label="Más">⋯</button>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
