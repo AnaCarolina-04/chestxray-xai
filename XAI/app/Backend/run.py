@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, send_file, send_from_directory, abort
 from flask_cors import CORS
-from model_service import process_xray  # Importamos tu función IA
+from model_service import process_xray 
 import io
 import os
 from pathlib import Path
@@ -58,13 +58,20 @@ def gradcam():
         download_name="gradcam.jpg"
     )
 
-# Servir frontend estático desde app/frontend
+# Servir frontend estático desde app/frontend/DoctorViews/multilabel
 BASE_DIR = Path(__file__).resolve().parents[1]  # -> ...\XAI\app
-STATIC_DIR = BASE_DIR / "frontend"               # -> ...\XAI\app\frontend
+STATIC_DIR = BASE_DIR / "frontend" / "DoctorViews" / "multilabel"  # -> ...\XAI\app\frontend\DoctorViews\multilabel
 
 if not STATIC_DIR.is_dir():
-    sys.stderr.write(f"AVISO: no existe el frontend en {STATIC_DIR}. Usando carpeta del backend.\n")
-    STATIC_DIR = Path(__file__).resolve().parent
+    sys.stderr.write(f"AVISO: no existe el frontend en {STATIC_DIR}. Intentando rutas alternativas...\n")
+    # intenta carpeta frontend raíz como fallback
+    alt = BASE_DIR / "frontend"
+    if alt.is_dir() and (alt / "index.html").exists():
+        STATIC_DIR = alt
+        sys.stderr.write(f"Usando fallback: {STATIC_DIR}\n")
+    else:
+        sys.stderr.write(f"AVISO: no se encontró index.html en las rutas esperadas. Usando carpeta del backend.\n")
+        STATIC_DIR = Path(__file__).resolve().parent
 else:
     sys.stderr.write(f"Sirviendo frontend estático desde: {STATIC_DIR}\n")
 
