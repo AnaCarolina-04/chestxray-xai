@@ -3,6 +3,8 @@ from flask_cors import CORS
 from model_service import process_xray  # Importamos tu función IA
 import io
 import os
+from pathlib import Path
+import sys
 
 app = Flask(__name__)
 CORS(app)
@@ -56,19 +58,27 @@ def gradcam():
         download_name="gradcam.jpg"
     )
 
-# --- Nuevo: servir frontend estático desde esta carpeta (app/Static) ---
-STATIC_DIR = os.path.dirname(os.path.abspath(__file__))  # carpeta donde está este run.py
+# Servir frontend estático desde app/frontend
+BASE_DIR = Path(__file__).resolve().parents[1]  # -> ...\XAI\app
+STATIC_DIR = BASE_DIR / "frontend"               # -> ...\XAI\app\frontend
+
+if not STATIC_DIR.is_dir():
+    sys.stderr.write(f"AVISO: no existe el frontend en {STATIC_DIR}. Usando carpeta del backend.\n")
+    STATIC_DIR = Path(__file__).resolve().parent
+else:
+    sys.stderr.write(f"Sirviendo frontend estático desde: {STATIC_DIR}\n")
+
+STATIC_DIR = str(STATIC_DIR)
 
 @app.route("/", defaults={"path": "index.html"})
 @app.route("/<path:path>")
 def serve_frontend(path):
     # No manejamos rutas /api con este endpoint
-    if path.startswith("api/"):
+    if request.path.startswith("/api") or path.startswith("api/"):
         abort(404)
-    # Aseguramos que exista el archivo solicitado
+    # Archivo solicitado o fallback a index.html (SPA)
     full_path = os.path.join(STATIC_DIR, path)
     if not os.path.isfile(full_path):
-        # si no existe, devolver index.html (SPA fallback) si quieres SPA:
         index_path = os.path.join(STATIC_DIR, "index.html")
         if os.path.isfile(index_path):
             return send_from_directory(STATIC_DIR, "index.html")

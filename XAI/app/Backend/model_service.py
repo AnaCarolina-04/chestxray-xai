@@ -5,11 +5,17 @@ from PIL import Image
 import numpy as np
 import cv2
 import io
+from pathlib import Path
+import sys
 
 # -----------------------------------------------------
 # 🔹 1. Cargar modelo automáticamente
 # -----------------------------------------------------
-MODEL_PATH = "c:\\Users\\anaca\\Desktop\\XAI\\app\\Static\\best_densenet.pth"  
+# MODEL_PATH = "models/best_densenet.pth"  
+MODEL_PATH = str(Path(__file__).resolve().parents[1] / "models" / "best_densenet.pth")
+if not Path(MODEL_PATH).exists():
+    sys.stderr.write(f"ERROR: modelo no encontrado en {MODEL_PATH}\n")
+    raise FileNotFoundError(f"Modelo no encontrado: {MODEL_PATH}")
 
 model = models.densenet121(weights=None)
 in_features = model.classifier.in_features
