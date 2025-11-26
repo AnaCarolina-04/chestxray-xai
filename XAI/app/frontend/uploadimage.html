@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Subir Radiografía - XAI</title>
+  <link rel="stylesheet" href="Styles.css">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- reutilizo sidebar idéntico al dashboard -->
+    <aside class="sidebar">
+      <div class="logo">🩺</div>
+
+      <nav>
+        <button class="icon-btn" data-tooltip="Inicio" onclick="location.href='index.html'">🏠</button>
+        <button class="icon-btn" data-tooltip="Estadísticas">📈</button>
+        <button class="icon-btn active" data-tooltip="Pacientes">🩺</button>
+        <button class="icon-btn" data-tooltip="Configuración">⚙️</button>
+      </nav>
+
+      <div class="bottom-actions">
+        <button class="icon-btn" data-tooltip="Ayuda">❓</button>
+        <img src="https://via.placeholder.com/40" alt="User" style="width:40px;height:40px;border-radius:8px;border:2px solid rgba(255,255,255,0.03)">
+      </div>
+    </aside>
+
+    <!-- Main Content: reutilizo header + layout general -->
+    <main class="main-content">
+      <header>
+        <div class="header-left">
+          <a href="index.html" class="back-link" style="color:var(--muted);text-decoration:none;padding-right:8px;">← Volver</a>
+          <h1 class="header-title">Subir Radiografía</h1>
+          <div class="search" style="margin-left:12px;">
+            🔍 <input type="search" placeholder="Buscar paciente, estudio..." />
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="badge">Notificaciones</div>
+          <div class="badge">Perfil</div>
+        </div>
+      </header>
+
+      <div class="main-grid">
+        <!-- Left column: subida + previews + diagnóstico -->
+        <section>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Subir imagen</div>
+              <button class="kebab">⋯</button>
+            </div>
+
+            <div class="upload-actions" style="margin-top:8px;">
+              <label class="upload-btn" for="fileInput">Subir archivo</label>
+              <input id="fileInput" type="file" accept="image/*" style="display:none">
+              <span style="color:var(--muted);font-size:13px;margin-left:12px;">Formato recomendado: PNG/JPG</span>
+            </div>
+
+            <div class="upload-panels" style="margin-top:14px; display:flex; gap:16px; flex-wrap:wrap;">
+              <div class="image-box" style="flex:1 1 48%;">
+                <div class="image-label">radiografía original</div>
+                <div class="image-preview" id="originalPreview">
+                  <div class="placeholder">Vista previa</div>
+                </div>
+              </div>
+
+              <div class="image-box" style="flex:1 1 48%;">
+                <div class="image-label">zona afectada</div>
+                <div class="image-preview" id="affectedPreview">
+                  <div class="placeholder">Procesamiento</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card diagnosis-card" style="margin-top:16px;">
+            <div class="card-header">
+              <div class="card-title">Diagnóstico</div>
+              <button class="kebab">⋯</button>
+            </div>
+            <div class="diagnosis-body" style="margin-top:8px;">
+              <div class="diagnosis-true">Diagnóstico verídico: <strong style="color:var(--text)">-</strong></div>
+              <div class="diagnosis-change">Cambio de diagnóstico: <strong style="color:var(--muted)">-</strong></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right column: modelos y opciones -->
+        <aside class="right-stack">
+          <div class="card">
+            <div class="card-title">Ver modelos single label</div>
+            <ul class="models-list" style="margin-top:12px; padding-left:0; list-style:none; color:var(--muted);">
+              <li>Atelectasis</li>
+              <li>Cardiomegaly</li>
+              <li>Nodule</li>
+              <li>Pleural Effusion</li>
+              <li>Nodosities</li>
+            </ul>
+            <button class="kebab" aria-label="Más">⋯</button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Resultados</div>
+            <div style="margin-top:12px;color:var(--muted);font-size:13px;">
+              El resultado del modelo aparecerá aquí tras el procesamiento.
+            </div>
+            <button class="kebab" aria-label="Más">⋯</button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Ajustes</div>
+            <div style="margin-top:12px;color:var(--muted);font-size:13px;">
+              Parámetros del modelo y exportación de reportes.
+            </div>
+            <button class="kebab" aria-label="Más">⋯</button>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- reutilizo main.js (contiene preview, sidebar click y chart) -->
+  <script src="main.js"></script>
+</body>
+</html>
