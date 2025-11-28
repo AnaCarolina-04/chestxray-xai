@@ -82,7 +82,14 @@ def process_xray(image_bytes):
     output = model(input_tensor)
     probs = torch.sigmoid(output).detach().numpy()[0]
 
+    # 🔹 DEBUG (opcional, puedes eliminarlo después)
+    print(f"📊 Probabilidades: {dict(zip(LABELS, [f'{p:.2%}' for p in probs]))}")
+    
     target_class = int(np.argmax(probs))  # clase más probable
+    
+    # 🔹 DEBUG (opcional)
+    print(f"✅ Predicción: {LABELS[target_class]} ({probs[target_class]:.2%})")
+    
     score = output[0, target_class]
     model.zero_grad()
     score.backward()
