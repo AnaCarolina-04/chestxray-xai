@@ -7,6 +7,7 @@ import cv2
 import io
 from pathlib import Path
 import sys
+import hashlib
 
 # -----------------------------------------------------
 # 🔹 1. Cargar modelo automáticamente
@@ -39,9 +40,26 @@ transform = transforms.Compose([
 ])
 
 # -----------------------------------------------------
+# 🔹 2.5. Sistema de caché
+# -----------------------------------------------------
+_cache = {}
+
+def _get_image_hash(image_bytes):
+    """Genera un hash único para la imagen"""
+    return hashlib.md5(image_bytes).hexdigest()
+
+# -----------------------------------------------------
 # 🔹 3. Función principal: clasificación + Grad-CAM
 # -----------------------------------------------------
 def process_xray(image_bytes):
+    # Verificar si ya procesamos esta imagen
+    img_hash = _get_image_hash(image_bytes)
+    if img_hash in _cache:
+        print(f"✅ Usando resultado cacheado para imagen {img_hash[:8]}...")
+        return _cache[img_hash]
+    
+    print(f"🔄 Procesando nueva imagen {img_hash[:8]}...")
+    
     # convertir bytes en imagen PIL
     img = Image.open(io.BytesIO(image_bytes)).convert('RGB')
     input_tensor = transform(img).unsqueeze(0)
@@ -64,7 +82,14 @@ def process_xray(image_bytes):
     output = model(input_tensor)
     probs = torch.sigmoid(output).detach().numpy()[0]
 
+    # 🔹 DEBUG (opcional, puedes eliminarlo después)
+    print(f"📊 Probabilidades: {dict(zip(LABELS, [f'{p:.2%}' for p in probs]))}")
+    
     target_class = int(np.argmax(probs))  # clase más probable
+    
+    # 🔹 DEBUG (opcional)
+    print(f"✅ Predicción: {LABELS[target_class]} ({probs[target_class]:.2%})")
+    
     score = output[0, target_class]
     model.zero_grad()
     score.backward()
@@ -85,8 +110,15 @@ def process_xray(image_bytes):
     # Convertir a bytes para enviar al frontend
     _, encoded_img = cv2.imencode('.jpg', superimposed_img)
 
-    return {
+    result = {
         "prediction": LABELS[target_class],
         "probabilities": dict(zip(LABELS, [float(p) for p in probs])),
         "heatmap_image": encoded_img.tobytes()
     }
+    
+    # Guardar en cache (limitar tamaño del cache a 10 imágenes)
+    if len(_cache) > 10:
+        _cache.pop(next(iter(_cache)))  # Eliminar la más antigua
+    _cache[img_hash] = result
+    
+    return result
