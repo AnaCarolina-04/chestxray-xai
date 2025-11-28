@@ -319,7 +319,55 @@ def get_gradcam_image(gradcam_id):
         print(f"❌ Error al obtener Grad-CAM: {e}")
         return jsonify({"error": str(e)}), 500
 
-# 📌 Validar diagnóstico
+# 📌 Obtener todas las predicciones (validadas y no validadas)
+@app.get("/api/predictions/all")
+def get_all_predictions():
+    try:
+        predictions = Prediction.query.order_by(Prediction.predicted_at.desc()).all()
+        return jsonify([{
+            "id": p.id,
+            "xray_id": p.xray_id,
+            "patient_id": p.xray.patient_id if p.xray else None,
+            "patient_name": p.xray.patient.name if p.xray and p.xray.patient else "Desconocido",
+            "disease_id": p.disease_id,
+            "disease_name": p.disease.name if p.disease else "Desconocido",
+            "confidence": p.confidence,
+            "validated": p.validated,
+            "predicted_at": p.predicted_at.isoformat() if p.predicted_at else None,
+            "doctor_notes": p.doctor_notes,
+            "corrected_disease_id": p.corrected_disease_id,
+            "corrected_disease_name": p.corrected_disease.name if p.corrected_disease else None
+        } for p in predictions])
+    except Exception as e:
+        print(f"❌ Error en get_all_predictions: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# 📌 Obtener predicción por ID
+@app.get("/api/predictions/<int:prediction_id>")
+def get_prediction(prediction_id):
+    try:
+        prediction = Prediction.query.get(prediction_id)
+        if not prediction:
+            return jsonify({"error": "Predicción no encontrada"}), 404
+        
+        return jsonify({
+            "id": prediction.id,
+            "xray_id": prediction.xray_id,
+            "patient_id": prediction.xray.patient_id if prediction.xray else None,
+            "patient_name": prediction.xray.patient.name if prediction.xray and prediction.xray.patient else "Desconocido",
+            "disease_id": prediction.disease_id,
+            "disease_name": prediction.disease.name if prediction.disease else "Desconocido",
+            "confidence": prediction.confidence,
+            "validated": prediction.validated,
+            "predicted_at": prediction.predicted_at.isoformat() if prediction.predicted_at else None,
+            "doctor_notes": prediction.doctor_notes,
+            "corrected_disease_id": prediction.corrected_disease_id
+        })
+    except Exception as e:
+        print(f"❌ Error en get_prediction: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# 📌 ACTUALIZAR: Validar diagnóstico con severidad
 @app.post("/api/predictions/<int:prediction_id>/validate")
 def validate_prediction(prediction_id):
     try:
@@ -328,8 +376,27 @@ def validate_prediction(prediction_id):
             return jsonify({"error": "Predicción no encontrada"}), 404
         
         data = request.json
+        
         prediction.validated = data.get('validated', True)
-        prediction.doctor_notes = data.get('notes', '')
+        prediction.doctor_notes = data.get('doctor_notes', '')
+        
+        # Si el diagnóstico es incorrecto, guardar la corrección
+        if not data.get('is_correct', True):
+            prediction.corrected_disease_id = data.get('corrected_disease_id')
+        
+        # Crear un diagnóstico formal con severidad
+        if data.get('severity'):
+            final_disease_id = prediction.corrected_disease_id if prediction.corrected_disease_id else prediction.disease_id
+            
+            diagnosis = Diagnosis(
+                patient_id=prediction.xray.patient_id,
+                xray_id=prediction.xray_id,
+                disease_id=final_disease_id,
+                severity=data.get('severity'),
+                notes=data.get('doctor_notes', '')
+            )
+            db.session.add(diagnosis)
+        
         db.session.commit()
         
         print(f"✅ Validación guardada para predicción {prediction_id}")
@@ -339,6 +406,8 @@ def validate_prediction(prediction_id):
     except Exception as e:
         db.session.rollback()
         print(f"❌ Error al validar: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # ============================
