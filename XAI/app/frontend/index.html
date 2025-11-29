@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediAI Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Using FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -14,68 +13,79 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
-                    <i class="fa-solid fa-notes-medical"></i>
-                    <span>MediAI</span>
-                </div>
-                <button id="close-sidebar" class="mobile-only"><i class="fa-solid fa-times"></i></button>
+                <h1><i class="fa-solid fa-lungs"></i> MediAI</h1>
+                <button id="close-sidebar" class="close-sidebar">
+                    <i class="fa-solid fa-times"></i>
+                </button>
             </div>
             
             <nav class="sidebar-nav">
-                <ul>
-                    <li class="nav-item active" data-target="patients">
-                        <a href="#"><i class="fa-solid fa-users"></i> <span>Pacientes</span></a>
-                    </li>
-                    <li class="nav-item" data-target="diseases">
-                        <a href="#"><i class="fa-solid fa-chart-pie"></i> <span>Enfermedades</span></a>
-                    </li>
-                    <li class="nav-item" data-target="explainable-ai">
-                        <a href="#"><i class="fa-solid fa-brain"></i> <span>IA Explicable</span></a>
-                    </li>
-                    <li class="nav-item" data-target="apply-cnn">
-                        <a href="#"><i class="fa-solid fa-microscope"></i> <span>Aplicar CNN</span></a>
-                    </li>
-                    <li class="nav-item" data-target="grad-cam">
-                        <a href="#"><i class="fa-solid fa-eye"></i> <span>Grad-CAM</span></a>
-                    </li>
-                    <li class="nav-item" data-target="validation">
-                        <a href="#"><i class="fa-solid fa-user-md"></i> <span>Validación</span></a>
-                    </li>
-                    <li class="nav-item" data-target="view-by-disease">
-                        <a href="#"><i class="fa-solid fa-filter"></i> <span>Por Enfermedad</span></a>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <div class="avatar">DR</div>
-                    <div class="user-info">
-                        <span class="name">Dr. Smith</span>
-                        <span class="role">Radiólogo</span>
-                    </div>
+                <div class="nav-item active">
+                    <a href="#" data-target="patients">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Pacientes</span>
+                    </a>
                 </div>
-            </div>
+                <div class="nav-item">
+                    <a href="#" data-target="upload-xray">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>Subir Radiografía</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" data-target="all-xrays">
+                        <i class="fa-solid fa-images"></i>
+                        <span>Todas las Radiografías</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" data-target="pending-xrays">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Pendientes de Procesar</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" data-target="analysis">
+                        <i class="fa-solid fa-microscope"></i>
+                        <span>Análisis de Radiografía</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" data-target="diagnoses">
+                        <i class="fa-solid fa-notes-medical"></i>
+                        <span>Gestión de Diagnósticos</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" data-target="diseases">
+                        <i class="fa-solid fa-virus"></i>
+                        <span>Enfermedades</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" data-target="explainable-ai">
+                        <i class="fa-solid fa-brain"></i>
+                        <span>IA Explicable</span>
+                    </a>
+                </div>
+            </nav>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="top-bar">
-                <button id="toggle-sidebar" class="mobile-only"><i class="fa-solid fa-bars"></i></button>
+            <header class="content-header">
+                <button id="toggle-sidebar" class="toggle-sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <h1 id="page-title">Pacientes</h1>
-                <div class="top-actions">
-                    <button class="icon-btn"><i class="fa-solid fa-bell"></i></button>
-                    <button class="icon-btn"><i class="fa-solid fa-cog"></i></button>
-                </div>
             </header>
-
+            
             <div id="content-area" class="content-area">
-                <!-- Dynamic Content will be loaded here -->
-                <div class="loading-spinner">Cargando...</div>
+                <!-- Dynamic content will be loaded here -->
             </div>
         </main>
     </div>
-
-    <script src="js/app.js"></script>
+    
+    <script src="/js/app.js"></script>
 </body>
 </html>
