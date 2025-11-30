@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ChestXray-XAI
 Sistema de Inteligencia Artificial Explicable para Radiografías de Tórax
 
@@ -47,3 +48,6 @@ http://127.0.0.1:5000/
 
 
 Desde allí, el frontend HTML puede realizar las solicitudes necesarias al backend.
+=======
+# chestxray-xai
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
