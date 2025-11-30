@@ -1,0 +1,22 @@
+# Entornos virtuales
+venv/
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Archivos grandes de librerías/binaries
+*.dll
+*.exe
+*.so
+*.pyd
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Carpeta de datos procesados o imágenes si no quieres subirlas
+# data/
+# imagenes_procesadas/
+Uploads/
