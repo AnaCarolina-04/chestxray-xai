@@ -1,5 +1,9 @@
 from flask import Flask, jsonify, request, send_file, send_from_directory, abort
 from flask_cors import CORS
+<<<<<<< HEAD
+from sqlalchemy import inspect
+=======
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
 from model_service import process_xray
 from models import db, User, Patient, Disease, Xray, Prediction, GradCam, Diagnosis
 from pathlib import Path
@@ -27,6 +31,14 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
     print("✅ database.db creado con todas las tablas")
+<<<<<<< HEAD
+    
+    # Verificar tablas creadas
+    inspector = inspect(db.engine)
+    tables = inspector.get_table_names()
+    print(f"📋 Tablas en la base de datos: {tables}")
+=======
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
 
 # ============================
 #         API ENDPOINTS
@@ -36,10 +48,74 @@ with app.app_context():
 def saludo():
     return jsonify({"mensaje": "Hola desde Flask! Backend funcionando!"})
 
+<<<<<<< HEAD
+# 📌 NUEVO: Verificar estado de la base de datos
+@app.get("/api/db/status")
+def db_status():
+    try:
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        table_info = {}
+        for table in tables:
+            columns = inspector.get_columns(table)
+            count = db.session.execute(db.text(f"SELECT COUNT(*) FROM {table}")).scalar()
+            table_info[table] = {
+                "columns": [col['name'] for col in columns],
+                "row_count": count
+            }
+        
+        return jsonify({
+            "status": "OK",
+            "database_path": str(DB_PATH),
+            "tables": table_info,
+            "patients_count": Patient.query.count(),
+            "xrays_count": Xray.query.count(),
+            "predictions_count": Prediction.query.count(),
+            "diagnoses_count": Diagnosis.query.count()
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Error en db_status: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+=======
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
 # 📌 Obtener todos los pacientes
 @app.get("/api/patients")
 def get_patients():
     try:
+<<<<<<< HEAD
+        print("🔍 Solicitando todos los pacientes...")
+        patients = Patient.query.all()
+        print(f"📊 Encontrados {len(patients)} pacientes en la BD")
+        
+        result = []
+        for p in patients:
+            try:
+                patient_data = {
+                    "id": p.id,
+                    "name": p.name,
+                    "age": p.age,
+                    "gender": p.gender,
+                    "created_at": p.created_at.isoformat() if p.created_at else None
+                }
+                result.append(patient_data)
+                print(f"  ✅ Paciente {p.id}: {p.name}")
+            except Exception as e:
+                print(f"⚠️ Error procesando paciente {p.id}: {e}")
+                continue
+        
+        print(f"✅ Devolviendo {len(result)} pacientes")
+        return jsonify(result), 200
+        
+    except Exception as e:
+        print(f"❌ Error en get_patients: {e}")
+        import traceback
+        traceback.print_exc()
+=======
         patients = Patient.query.all()
         return jsonify([{
             "id": p.id,
@@ -50,6 +126,7 @@ def get_patients():
         } for p in patients])
     except Exception as e:
         print(f"❌ Error en get_patients: {e}")
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         return jsonify({"error": str(e)}), 500
 
 # 📌 Crear nuevo paciente
@@ -57,6 +134,47 @@ def get_patients():
 def create_patient():
     try:
         data = request.json
+<<<<<<< HEAD
+        print(f"📥 Datos recibidos para crear paciente: {data}")
+        
+        # Validar datos
+        if not data:
+            print("❌ No se recibieron datos")
+            return jsonify({"error": "No se recibieron datos"}), 400
+            
+        if not data.get('name') or not str(data.get('name')).strip():
+            print("❌ El nombre está vacío")
+            return jsonify({"error": "El nombre es requerido"}), 400
+            
+        if not data.get('age'):
+            print("❌ La edad está vacía")
+            return jsonify({"error": "La edad es requerida"}), 400
+        
+        # Validar edad
+        try:
+            age = int(data.get('age'))
+            if age <= 0 or age > 150:
+                return jsonify({"error": "Edad inválida"}), 400
+        except (ValueError, TypeError):
+            return jsonify({"error": "La edad debe ser un número válido"}), 400
+        
+        # Validar género
+        gender = data.get('gender', 'M')
+        if gender not in ['M', 'F', 'O']:
+            gender = 'M'
+        
+        patient = Patient(
+            name=str(data.get('name')).strip(),
+            age=age,
+            gender=gender
+        )
+        
+        db.session.add(patient)
+        db.session.commit()
+        db.session.refresh(patient)  # ✅ Asegurar que el objeto tenga todos los datos
+        
+        print(f"✅ Paciente creado exitosamente: {patient.name} (ID: {patient.id})")
+=======
         
         # Validar datos
         if not data.get('name'):
@@ -73,16 +191,28 @@ def create_patient():
         db.session.commit()
         
         print(f"✅ Paciente creado: {patient.name} (ID: {patient.id})")
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         
         return jsonify({
             "id": patient.id,
             "name": patient.name,
+<<<<<<< HEAD
+            "age": patient.age,
+            "gender": patient.gender,
+            "created_at": patient.created_at.isoformat() if patient.created_at else None,
+=======
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
             "message": "Paciente creado exitosamente"
         }), 201
         
     except Exception as e:
         db.session.rollback()
         print(f"❌ Error al crear paciente: {e}")
+<<<<<<< HEAD
+        import traceback
+        traceback.print_exc()
+=======
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         return jsonify({"error": str(e)}), 500
 
 # 📌 Subir radiografía asociada a un paciente
@@ -240,9 +370,15 @@ def process_existing_xray(xray_id):
         if not disease:
             disease = Disease(name=result['prediction'])
             db.session.add(disease)
+<<<<<<< HEAD
+            db.session.flush()  # ✅ Para obtener el ID
+        
+        # Guardar Grad-CAM PRIMERO
+=======
             db.session.commit()
         
         # Guardar Grad-CAM
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         gradcam_filename = f"gradcam_{xray_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
         gradcam_path = UPLOADS_DIR / gradcam_filename
         with open(gradcam_path, 'wb') as f:
@@ -253,11 +389,21 @@ def process_existing_xray(xray_id):
             image_path=str(gradcam_path)
         )
         db.session.add(gradcam)
+<<<<<<< HEAD
+        db.session.flush()  # ✅ Para obtener el ID del gradcam
+        
+        # Crear predicción CON gradcam_id
+        prediction = Prediction(
+            xray_id=xray_id,
+            disease_id=disease.id,
+            gradcam_id=gradcam.id,  # ✅ AGREGADO
+=======
         
         # Crear predicción
         prediction = Prediction(
             xray_id=xray_id,
             disease_id=disease.id,
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
             confidence=result['probabilities'][result['prediction']],
             validated=False
         )
@@ -267,16 +413,32 @@ def process_existing_xray(xray_id):
         print(f"✅ Procesada radiografía {xray_id}: {result['prediction']}")
         
         return jsonify({
+<<<<<<< HEAD
+            "prediction_id": prediction.id,
+            "xray_id": xray_id,
+            "patient_name": xray.patient.name,
+            "disease_name": disease.name,
+            "confidence": result['probabilities'][result['prediction']],
+            "probabilities": result['probabilities'],
+            "gradcam_id": gradcam.id,
+            "predicted_at": prediction.predicted_at.isoformat()
+=======
             "prediction": result['prediction'],
             "confidence": result['probabilities'][result['prediction']],
             "probabilities": result['probabilities'],
             "gradcam_id": gradcam.id,
             "xray_id": xray_id
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         })
         
     except Exception as e:
         db.session.rollback()
         print(f"❌ Error al procesar radiografía: {e}")
+<<<<<<< HEAD
+        import traceback
+        traceback.print_exc()
+=======
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         return jsonify({"error": str(e)}), 500
 
 # 📌 Obtener imagen de radiografía original
@@ -323,6 +485,103 @@ def get_gradcam_image(gradcam_id):
 @app.get("/api/predictions/all")
 def get_all_predictions():
     try:
+<<<<<<< HEAD
+        predictions = Prediction.query.all()
+        
+        result = []
+        for pred in predictions:
+            # Enfermedad mostrada (corregida si existe, sino la original)
+            display_disease = pred.corrected_disease.name if pred.corrected_disease else pred.disease.name
+            
+            result.append({
+                'id': pred.id,
+                'xray_id': pred.xray_id,
+                'patient_id': pred.xray.patient_id,
+                'patient_name': pred.xray.patient.name,
+                'disease_name': pred.disease.name,
+                'corrected_disease_name': pred.corrected_disease.name if pred.corrected_disease else None,
+                'confidence': pred.confidence,
+                'predicted_at': pred.predicted_at.isoformat(),
+                'validated': pred.validated,
+                'is_correct': pred.is_correct,
+                'doctor_notes': pred.doctor_notes,
+                'gradcam_id': pred.gradcam_id
+            })
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        print(f"❌ Error al obtener predicciones: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+# 📌 Obtener predicción por ID
+@app.get("/api/predictions/<int:prediction_id>")
+def get_prediction_detail(prediction_id):
+    try:
+        prediction = Prediction.query.get(prediction_id)
+        
+        if not prediction:
+            return jsonify({'error': 'Predicción no encontrada'}), 404
+        
+        return jsonify({
+            'id': prediction.id,
+            'xray_id': prediction.xray_id,
+            'patient_id': prediction.xray.patient_id,
+            'patient_name': prediction.xray.patient.name,
+            'disease_name': prediction.disease.name,
+            'corrected_disease_name': prediction.corrected_disease.name if prediction.corrected_disease else None,
+            'confidence': prediction.confidence,
+            'predicted_at': prediction.predicted_at.isoformat(),
+            'upload_date': prediction.xray.upload_date.isoformat(),
+            'validated': prediction.validated,
+            'is_correct': prediction.is_correct,
+            'doctor_notes': prediction.doctor_notes,
+            'gradcam_id': prediction.gradcam_id
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+# 📌 ACTUALIZAR: Validar diagnóstico con severidad
+@app.route('/api/predictions/<int:prediction_id>/validate', methods=['POST'])
+def validate_prediction(prediction_id):
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No se recibieron datos'}), 400
+        
+        # Buscar la predicción
+        prediction = Prediction.query.get(prediction_id)
+        
+        if not prediction:
+            return jsonify({'error': 'Predicción no encontrada'}), 404
+        
+        # Actualizar campos de validación
+        prediction.validated = data.get('validated', True)
+        prediction.is_correct = data.get('is_correct', True)
+        prediction.doctor_notes = data.get('doctor_notes', '')
+        
+        # Si el médico corrigió el diagnóstico
+        if not prediction.is_correct and data.get('corrected_disease_id'):
+            prediction.corrected_disease_id = int(data.get('corrected_disease_id'))
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Predicción validada exitosamente',
+            'prediction_id': prediction.id
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Error al validar predicción: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+=======
         predictions = Prediction.query.order_by(Prediction.predicted_at.desc()).all()
         return jsonify([{
             "id": p.id,
@@ -409,6 +668,7 @@ def validate_prediction(prediction_id):
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
 
 # ============================
 #    CRUD DE DIAGNÓSTICOS
@@ -426,7 +686,10 @@ def get_diagnoses():
             "xray_id": d.xray_id,
             "disease_id": d.disease_id,
             "disease_name": d.disease.name if d.disease else "Desconocido",
+<<<<<<< HEAD
+=======
             "severity": d.severity,
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
             "notes": d.notes,
             "diagnosed_at": d.diagnosed_at.isoformat() if d.diagnosed_at else None
         } for d in diagnoses])
@@ -434,6 +697,8 @@ def get_diagnoses():
         print(f"❌ Error en get_diagnoses: {e}")
         return jsonify({"error": str(e)}), 500
 
+<<<<<<< HEAD
+=======
 # 📌 Obtener diagnóstico por ID
 @app.get("/api/diagnoses/<int:diagnosis_id>")
 def get_diagnosis(diagnosis_id):
@@ -457,6 +722,7 @@ def get_diagnosis(diagnosis_id):
         print(f"❌ Error en get_diagnosis: {e}")
         return jsonify({"error": str(e)}), 500
 
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
 # 📌 Crear nuevo diagnóstico
 @app.post("/api/diagnoses")
 def create_diagnosis():
@@ -484,8 +750,12 @@ def create_diagnosis():
             patient_id=data.get('patient_id'),
             xray_id=data.get('xray_id'),
             disease_id=data.get('disease_id'),
+<<<<<<< HEAD
+            notes=data.get('notes', '')  # ❌ Sin severity
+=======
             severity=data.get('severity', 'moderado'),
             notes=data.get('notes', '')
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         )
         db.session.add(diagnosis)
         db.session.commit()
@@ -521,9 +791,12 @@ def update_diagnosis(diagnosis_id):
                 return jsonify({"error": "Enfermedad no encontrada"}), 404
             diagnosis.disease_id = data['disease_id']
         
+<<<<<<< HEAD
+=======
         if 'severity' in data:
             diagnosis.severity = data['severity']
         
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         if 'notes' in data:
             diagnosis.notes = data['notes']
         
@@ -565,6 +838,39 @@ def delete_diagnosis(diagnosis_id):
 @app.get("/api/patients/<int:patient_id>/diagnoses")
 def get_patient_diagnoses(patient_id):
     try:
+<<<<<<< HEAD
+        print(f"🔍 Buscando diagnósticos para paciente {patient_id}...")
+        
+        patient = Patient.query.get(patient_id)
+        if not patient:
+            print(f"❌ Paciente {patient_id} no encontrado")
+            return jsonify({"error": "Paciente no encontrado"}), 404
+        
+        diagnoses = Diagnosis.query.filter_by(patient_id=patient_id).order_by(Diagnosis.diagnosed_at.desc()).all()
+        print(f"📊 Encontrados {len(diagnoses)} diagnósticos")
+        
+        result = []
+        for d in diagnoses:
+            try:
+                diagnosis_data = {
+                    "id": d.id,
+                    "disease_name": d.disease.name if d.disease else "Desconocido",
+                    "notes": d.notes,
+                    "diagnosed_at": d.diagnosed_at.isoformat() if d.diagnosed_at else None,
+                    "has_xray": d.xray_id is not None
+                }
+                result.append(diagnosis_data)
+            except Exception as e:
+                print(f"⚠️ Error procesando diagnóstico {d.id}: {e}")
+                continue
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        print(f"❌ Error en get_patient_diagnoses: {e}")
+        import traceback
+        traceback.print_exc()
+=======
         patient = Patient.query.get(patient_id)
         if not patient:
             return jsonify({"error": "Paciente no encontrado"}), 404
@@ -582,12 +888,97 @@ def get_patient_diagnoses(patient_id):
         
     except Exception as e:
         print(f"❌ Error en get_patient_diagnoses: {e}")
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         return jsonify({"error": str(e)}), 500
 
 # 📌 Obtener todas las enfermedades
 @app.get("/api/diseases")
 def get_diseases():
     try:
+<<<<<<< HEAD
+        print("🔍 Consultando todas las enfermedades...")
+        diseases = Disease.query.all()
+        print(f"📊 Encontradas {len(diseases)} enfermedades")
+        
+        result = [{
+            "id": d.id,
+            "name": d.name,
+            "description": d.description
+        } for d in diseases]
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        print(f"❌ Error en get_diseases: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+# 📌 NUEVO: Obtener detalles de un paciente específico
+@app.get("/api/patients/<int:patient_id>")
+def get_patient_detail(patient_id):
+    try:
+        print(f"🔍 Buscando paciente {patient_id}...")
+        
+        patient = Patient.query.get(patient_id)
+        if not patient:
+            print(f"❌ Paciente {patient_id} no encontrado")
+            return jsonify({"error": "Paciente no encontrado"}), 404
+        
+        # Contar radiografías y diagnósticos
+        xrays_count = Xray.query.filter_by(patient_id=patient_id).count()
+        diagnoses_count = Diagnosis.query.filter_by(patient_id=patient_id).count()
+        predictions_count = Prediction.query.join(Xray).filter(Xray.patient_id == patient_id).count()
+        
+        result = {
+            "id": patient.id,
+            "name": patient.name,
+            "age": patient.age,
+            "gender": patient.gender,
+            "created_at": patient.created_at.isoformat() if patient.created_at else None,
+            "xrays_count": xrays_count,
+            "diagnoses_count": diagnoses_count,
+            "predictions_count": predictions_count
+        }
+        
+        print(f"✅ Paciente encontrado: {patient.name}")
+        return jsonify(result), 200
+        
+    except Exception as e:
+        print(f"❌ Error en get_patient_detail: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+# 📌 NUEVO: Eliminar paciente (con cascade)
+@app.delete("/api/patients/<int:patient_id>")
+def delete_patient(patient_id):
+    try:
+        print(f"🗑️ Intentando eliminar paciente {patient_id}...")
+        
+        patient = Patient.query.get(patient_id)
+        if not patient:
+            print(f"❌ Paciente {patient_id} no encontrado")
+            return jsonify({"error": "Paciente no encontrado"}), 404
+        
+        patient_name = patient.name
+        
+        # SQLAlchemy debería manejar el cascade automáticamente si está configurado
+        db.session.delete(patient)
+        db.session.commit()
+        
+        print(f"✅ Paciente eliminado: {patient_name}")
+        
+        return jsonify({
+            "message": f"Paciente {patient_name} eliminado exitosamente"
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error al eliminar paciente: {e}")
+        import traceback
+        traceback.print_exc()
+=======
         diseases = Disease.query.all()
         return jsonify([{
             "id": d.id,
@@ -596,6 +987,7 @@ def get_diseases():
         } for d in diseases])
     except Exception as e:
         print(f"❌ Error en get_diseases: {e}")
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         return jsonify({"error": str(e)}), 500
 
 # ============================
@@ -604,6 +996,25 @@ def get_diseases():
 
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
 
+<<<<<<< HEAD
+# Servir archivos CSS
+@app.route("/css/<path:filename>")
+def serve_css(filename):
+    return send_from_directory(FRONTEND_DIR / "css", filename, mimetype='text/css')
+
+# Servir archivos JS
+@app.route("/js/<path:filename>")
+def serve_js(filename):
+    return send_from_directory(FRONTEND_DIR / "js", filename, mimetype='application/javascript')
+
+# Servir archivos de assets
+@app.route("/assets/<path:filename>")
+def serve_assets(filename):
+    return send_from_directory(FRONTEND_DIR / "assets", filename)
+
+# Ruta raíz y fallback
+=======
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_frontend(path):
@@ -619,5 +1030,15 @@ if __name__ == "__main__":
     print(f"📁 Serviendo frontend desde: {FRONTEND_DIR}")
     print(f"📁 Base de datos SQLite: {DB_PATH}")
     print(f"📁 Carpeta de uploads: {UPLOADS_DIR}")
+<<<<<<< HEAD
+    
+    # Verificar que el directorio frontend existe
+    if not FRONTEND_DIR.exists():
+        print(f"⚠️ ADVERTENCIA: Directorio frontend no encontrado en {FRONTEND_DIR}")
+    else:
+        print(f"✅ Directorio frontend encontrado")
+    
+=======
+>>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
     app.run(debug=True, host="0.0.0.0", port=5000)
 
