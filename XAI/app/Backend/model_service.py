@@ -1,6 +1,14 @@
-import torch
-import torch.nn.functional as F
-from torchvision import models, transforms
+# Try to import ML libraries - they're optional for running the web server
+try:
+    import torch
+    import torch.nn.functional as F
+    from torchvision import models, transforms
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    print("⚠️  WARNING: PyTorch not installed. ML features will be disabled.")
+    print("   To enable ML features, install: pip install -r requirements-ml.txt")
+
 from PIL import Image
 import numpy as np
 import cv2
@@ -18,11 +26,15 @@ LABELS = ['Atelectasis', 'Effusion', 'Infiltration', 'Cardiomegaly', 'Nodule']
 
 _cache = {}
 
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])
-])
+# Only initialize transform if ML libraries are available
+if ML_AVAILABLE:
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])
+    ])
+else:
+    transform = None
 
 def _get_image_hash(image_bytes):
     return hashlib.md5(image_bytes).hexdigest()
@@ -231,6 +243,12 @@ def create_overlay(original_img_pil, cam):
 
 def process_xray(image_bytes):
     """Main entry point for general analysis."""
+    if not ML_AVAILABLE:
+        return {
+            "error": "ML libraries not installed",
+            "message": "Please install PyTorch: pip install -r requirements-ml.txt"
+        }
+    
     img_hash = _get_image_hash(image_bytes)
     if img_hash in _cache:
         print(f"✅ Using cached result for {img_hash[:8]}")
@@ -266,6 +284,12 @@ def process_xray(image_bytes):
 
 def process_single_label_analysis(image_bytes, disease_type):
     """Entry point for specific disease analysis."""
+    if not ML_AVAILABLE:
+        return {
+            "error": "ML libraries not installed",
+            "message": "Please install PyTorch: pip install -r requirements-ml.txt"
+        }
+    
     model = get_single_label_model(disease_type)
     if not model:
         return {"error": f"Model for {disease_type} not found"}
