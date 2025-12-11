@@ -702,6 +702,25 @@ function renderAllXrays() {
             </div>
             <div id="all-xrays-list"></div>
         </div>
+
+        <!-- Edit Xray Modal -->
+        <div id="edit-xray-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <h3>Editar Radiografía</h3>
+                <input type="hidden" id="edit-xray-id">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Sube una nueva imagen para reemplazar la actual.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Nueva Imagen</label>
+                    <input type="file" id="edit-xray-file" class="form-control" accept="image/*">
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-outline" type="button" onclick="closeEditXrayModal()">Cancelar</button>
+                    <button class="btn btn-primary" type="button" id="btn-save-edit-xray">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
     `;
 
     setTimeout(async () => {
@@ -713,6 +732,12 @@ function renderAllXrays() {
             filterSelect.addEventListener('change', (e) => {
                 filterXraysByPatient(e.target.value);
             });
+        }
+
+        // Init Edit Modal Listener
+        const btnSave = document.getElementById('btn-save-edit-xray');
+        if (btnSave) {
+            btnSave.onclick = updateXray;
         }
     }, 100);
 
@@ -764,7 +789,13 @@ function displayXrays(xrays) {
     listDiv.innerHTML = `
         <div class="grid-3">
             ${xrays.map(x => `
-                <div class="xray-card" style="border: 1px solid var(--border-color); border-radius: 0.75rem; overflow: hidden; transition: transform 0.2s;">
+                <div class="xray-card" style="border: 1px solid var(--border-color); border-radius: 0.75rem; overflow: hidden; transition: transform 0.2s; position: relative;">
+                    <button class="action-btn edit" 
+                            style="position: absolute; top: 10px; right: 10px; background: white; z-index: 10;" 
+                            onclick="openEditXrayModal(${x.id})" 
+                            title="Editar Imagen">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
                     <img src="/api/xrays/${x.id}/image" 
                          alt="Radiografía ${x.id}" 
                          style="width: 100%; height: 200px; object-fit: cover; cursor: pointer; background: #f0f0f0;" 
@@ -792,6 +823,58 @@ function displayXrays(xrays) {
             `).join('')}
         </div>
     `;
+}
+
+// 📌 Edit Xray Logic
+window.openEditXrayModal = function (id) {
+    const modal = document.getElementById('edit-xray-modal');
+    document.getElementById('edit-xray-id').value = id;
+    document.getElementById('edit-xray-file').value = '';
+    modal.style.display = 'flex';
+};
+
+window.closeEditXrayModal = function () {
+    document.getElementById('edit-xray-modal').style.display = 'none';
+};
+
+async function updateXray() {
+    const id = document.getElementById('edit-xray-id').value;
+    const fileInput = document.getElementById('edit-xray-file');
+    const btnSave = document.getElementById('btn-save-edit-xray');
+
+    if (!fileInput.files[0]) {
+        showNotification('Selecciona una imagen', 'warning');
+        return;
+    }
+
+    btnSave.disabled = true;
+    btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]); // Backend expects 'image'
+
+    try {
+        const response = await fetch(`/api/xrays/${id}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Error al actualizar');
+        }
+
+        showNotification('Radiografía actualizada', 'success');
+        closeEditXrayModal();
+        loadAllXraysData(); // Refresh list
+
+    } catch (error) {
+        console.error(error);
+        showNotification(error.message, 'error');
+    } finally {
+        btnSave.disabled = false;
+        btnSave.innerHTML = 'Guardar Cambios';
+    }
 }
 
 async function populatePatientFilter() {
@@ -1744,6 +1827,19 @@ function renderAnalysis() {
                             <!-- Resultados inyectados aquí -->
                         </div>
                     </div>
+
+                    <!-- Card Effusion -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; flex: 1; border: 1px solid #e2e8f0; min-width: 300px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 style="margin: 0;"><i class="fa-solid fa-water"></i> Effusion</h4>
+                            <button id="btn-analyze-effusion" class="btn btn-outline btn-sm" onclick="analyzeSpecificDisease('${xrayId}', 'Effusion')">
+                                Analizar
+                            </button>
+                        </div>
+                        <div id="result-Effusion" style="display: none; margin-top: 1rem;">
+                            <!-- Resultados inyectados aquí -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -2317,6 +2413,7 @@ async function analyzeSpecificDisease(xrayId, diseaseType) {
     if (diseaseType === 'Cardiomegaly') btnId = 'btn-analyze-cardio';
     else if (diseaseType === 'Nodule') btnId = 'btn-analyze-nodule';
     else if (diseaseType === 'Atelectasis') btnId = 'btn-analyze-atelectasis';
+    else if (diseaseType === 'Effusion') btnId = 'btn-analyze-effusion';
 
     const container = document.getElementById(containerId);
     const btn = document.getElementById(btnId);

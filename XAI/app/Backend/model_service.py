@@ -139,6 +139,8 @@ def get_single_label_model(disease_type):
         path = MODELS_DIR / "densenet_Nodule_best.pth"
     elif disease_type == 'Atelectasis':
         path = MODELS_DIR / "densenet_Atelectasis_best.pth"
+    elif disease_type == 'Effusion':
+        path = MODELS_DIR / "densenet_Effusion_best.pth"
         
     if path:
         model = load_densenet_model(path, is_single_label=True)
