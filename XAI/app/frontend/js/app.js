@@ -2636,38 +2636,38 @@ function renderDashboard() {
 
         <!-- Charts Grid -->
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 1.5rem;">
-            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);">
                 <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
                     <i class="fa-solid fa-users" style="color: #3b82f6;"></i> Pacientes por Género
                 </h3>
                 <canvas id="chartGender" style="max-height: 250px;"></canvas>
             </div>
-            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);">
                 <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
-                    <i class="fa-solid fa-check-circle" style="color: #10b981;"></i> Validación de Diagnósticos
+                    <i class="fa-solid fa-check-circle" style="color: #3b82f6;"></i> Validación de Diagnósticos
                 </h3>
                 <canvas id="chartAccuracy" style="max-height: 250px;"></canvas>
             </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);">
                 <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
-                    <i class="fa-solid fa-chart-bar" style="color: #8b5cf6;"></i> Enfermedades Detectadas
+                    <i class="fa-solid fa-chart-bar" style="color: #3b82f6;"></i> Enfermedades Detectadas
                 </h3>
                 <canvas id="chartDiseases" style="max-height: 300px;"></canvas>
             </div>
-            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);">
                 <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
-                    <i class="fa-solid fa-calendar-days" style="color: #f59e0b;"></i> Actividad Mensual
+                    <i class="fa-solid fa-calendar-days" style="color: #3b82f6;"></i> Actividad Mensual
                 </h3>
                 <canvas id="chartMonthly" style="max-height: 300px;"></canvas>
             </div>
         </div>
 
-        <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+        <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);">
             <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
-                <i class="fa-solid fa-clock-rotate-left" style="color: #06b6d4;"></i> Diagnósticos Recientes
+                <i class="fa-solid fa-clock-rotate-left" style="color: #3b82f6;"></i> Diagnósticos Recientes
             </h3>
             <div id="recent-diagnoses-list"></div>
         </div>
@@ -2695,7 +2695,7 @@ function renderDashboard() {
                         labels: ['Masculino', 'Femenino'],
                         datasets: [{
                             data: [male, female],
-                            backgroundColor: ['#3b82f6', '#ec4899'],
+                            backgroundColor: ['#3b82f6', '#93c5fd'],
                             borderWidth: 0,
                             hoverOffset: 10
                         }]
@@ -2728,7 +2728,7 @@ function renderDashboard() {
                         labels: ['Correcto', 'Incorrecto', 'Pendiente'],
                         datasets: [{
                             data: [correct, incorrect, pending],
-                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                            backgroundColor: ['#60a5fa', '#3b82f6', '#93c5fd'],
                             borderWidth: 0,
                             hoverOffset: 10
                         }]
@@ -2806,13 +2806,13 @@ function renderDashboard() {
                         datasets: [{
                             label: 'Diagnósticos',
                             data: counts,
-                            borderColor: '#06b6d4',
-                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
                             tension: 0.4,
                             fill: true,
                             pointRadius: 5,
                             pointHoverRadius: 7,
-                            pointBackgroundColor: '#06b6d4'
+                            pointBackgroundColor: '#3b82f6'
                         }]
                     },
                     options: {
@@ -2859,42 +2859,42 @@ function renderDashboardStatsCards(patients, predictions, xrays) {
 
     container.innerHTML = `
         <div class="status-summary-grid" style="margin-bottom: 2rem;">
-            <div class="status-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: none;">
+            <div class="status-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe;">
                 <div class="status-info">
-                    <h4 style="color: #1e3a8a;">Total Pacientes</h4>
+                    <h4 style="color: #1e40af;">Total Pacientes</h4>
                     <div class="count" style="color: #1e40af;">${patients.length}</div>
                 </div>
-                <div class="status-icon" style="background: white; color: #3b82f6;">
+                <div class="status-icon" style="background: #3b82f6; color: white;">
                     <i class="fa-solid fa-users"></i>
                 </div>
             </div>
 
-            <div class="status-card" style="background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%); border: none;">
+            <div class="status-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe;">
                 <div class="status-info">
-                    <h4 style="color: #1e3a8a;">Radiografías Subidas</h4>
+                    <h4 style="color: #1e40af;">Radiografías Subidas</h4>
                     <div class="count" style="color: #1e40af;">${xrays.length}</div>
                 </div>
-                <div class="status-icon" style="background: white; color: #3b82f6;">
+                <div class="status-icon" style="background: #60a5fa; color: white;">
                     <i class="fa-solid fa-images"></i>
                 </div>
             </div>
 
-            <div class="status-card" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border: none;">
+            <div class="status-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe;">
                 <div class="status-info">
-                    <h4 style="color: #065f46;">Diagnósticos Realizados</h4>
-                    <div class="count" style="color: #047857;">${predictions.length}</div>
+                    <h4 style="color: #1e40af;">Diagnósticos Realizados</h4>
+                    <div class="count" style="color: #1e40af;">${predictions.length}</div>
                 </div>
-                <div class="status-icon" style="background: white; color: #10b981;">
+                <div class="status-icon" style="background: #2563eb; color: white;">
                     <i class="fa-solid fa-stethoscope"></i>
                 </div>
             </div>
 
-            <div class="status-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: none;">
+            <div class="status-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe;">
                 <div class="status-info">
-                    <h4 style="color: #78350f;">Precisión del Modelo</h4>
-                    <div class="count" style="color: #92400e;">${accuracyPercent}%</div>
+                    <h4 style="color: #1e40af;">Precisión del Modelo</h4>
+                    <div class="count" style="color: #1e40af;">${accuracyPercent}%</div>
                 </div>
-                <div class="status-icon" style="background: white; color: #f59e0b;">
+                <div class="status-icon" style="background: #1d4ed8; color: white;">
                     <i class="fa-solid fa-chart-line"></i>
                 </div>
             </div>

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar -->
@@ -77,6 +78,15 @@
                     </a>
                 </div>
             </nav>
+
+            <!-- Settings Button at Bottom -->
+            <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); margin-top: auto;">
+                <button class="btn btn-outline" style="width: 100%; justify-content: flex-start; gap: 0.75rem;"
+                    onclick="alert('Configuración próximamente')">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Ajustes</span>
+                </button>
+            </div>
         </aside>
 
         <!-- Main Content -->
@@ -86,6 +96,18 @@
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <h1 id="page-title">Pacientes</h1>
+
+                <!-- User Profile -->
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 1rem;">
+                    <div style="text-align: right; display: none;" class="user-info-desktop">
+                        <div style="font-size: 0.875rem; font-weight: 600; color: var(--text-main);">Dr. Usuario</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Médico Radiólogo</div>
+                    </div>
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #2563eb); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; cursor: pointer;">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
             </header>
 
             <div id="content-area" class="content-area">
