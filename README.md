@@ -1,58 +1,56 @@
-# Chest X-Ray Classification with Explainable AI
+# Clasificación de Rayos X de Tórax con IA Explicable
 
-A comprehensive web application for automated chest X-ray analysis using deep learning with explainable AI (XAI) techniques. This system provides accurate pathology detection while offering visual explanations through Grad-CAM heatmaps, making AI decisions transparent and interpretable for medical professionals.
+Una aplicación web completa para el análisis automatizado de radiografías de tórax utilizando aprendizaje profundo con técnicas de IA explicable (XAI). Este sistema proporciona detección precisa de patologías mientras ofrece explicaciones visuales a través de mapas de calor Grad-CAM, haciendo que las decisiones de la IA sean transparentes e interpretables para profesionales médicos.
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.18-orange)
 ![Flask](https://img.shields.io/badge/Flask-3.1-green)
-![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## 🌟 Features
+## 🌟 Características
 
-### Core Functionality
-- **Multi-Label Classification**: Simultaneous detection of 14 thoracic pathologies using DenseNet121
-- **Binary Classification**: Specialized models for specific conditions (Atelectasis, Cardiomegaly, Infiltration, etc.)
-- **Explainable AI**: Grad-CAM heatmap visualization showing which regions influenced the diagnosis
-- **Patient Management**: Complete CRUD operations for patients and follow-up records
-- **Diagnosis Tracking**: Comprehensive diagnosis history with validation workflow
-- **Interactive Dashboard**: Real-time statistics and data visualization
+### Funcionalidad Principal
+- **Clasificación Multi-etiqueta**: Detección simultánea de 14 patologías torácicas usando DenseNet121
+- **Clasificación Binaria**: Modelos especializados para condiciones específicas (Atelectasia, Cardiomegalia, Infiltración, etc.)
+- **IA Explicable**: Visualización de mapas de calor Grad-CAM que muestran qué regiones influyeron en el diagnóstico
+- **Gestión de Pacientes**: Operaciones CRUD completas para pacientes y registros de seguimiento
+- **Seguimiento de Diagnósticos**: Historial completo de diagnósticos con flujo de validación
+- **Dashboard Interactivo**: Estadísticas en tiempo real y visualización de datos
 
-### Technical Highlights
-- **Deep Learning Models**: Pre-trained DenseNet121 architecture fine-tuned on chest X-ray datasets
-- **RESTful API**: Clean, well-documented backend API with Flask
-- **Modern Frontend**: Responsive single-page application with vanilla JavaScript
-- **Database Management**: SQLite with SQLAlchemy ORM for efficient data handling
-- **Image Processing**: Automated preprocessing pipeline for X-ray normalization
+### Aspectos Técnicos Destacados
+- **Modelos de Aprendizaje Profundo**: Arquitectura DenseNet121 pre-entrenada y ajustada en datasets de rayos X de tórax
+- **API RESTful**: API backend limpia y bien documentada con Flask
+- **Frontend Moderno**: Aplicación de página única responsive con JavaScript vanilla
+- **Gestión de Base de Datos**: SQLite con SQLAlchemy ORM para manejo eficiente de datos
+- **Procesamiento de Imágenes**: Pipeline automatizado de preprocesamiento para normalización de rayos X
 
-## 📋 Table of Contents
+## 📋 Tabla de Contenidos
 
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Project Structure](#-project-structure)
-- [API Documentation](#-api-documentation)
-- [Model Architecture](#-model-architecture)
+- [Instalación](#-instalación)
+- [Uso](#-uso)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Documentación de la API](#-documentación-de-la-api)
+- [Arquitectura del Modelo](#-arquitectura-del-modelo)
 - [Dataset](#-dataset)
-- [Training](#-training)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Entrenamiento](#-entrenamiento)
+- [Tecnologías Utilizadas](#-tecnologías-utilizadas)
 
-## 🚀 Installation
+## 🚀 Instalación
 
-### Prerequisites
+### Requisitos Previos
 
-- Python 3.12 or higher
-- pip package manager
+- Python 3.12 o superior
+- Gestor de paquetes pip
 - Git
-- (Optional) CUDA-compatible GPU for model training
+- (Opcional) GPU compatible con CUDA para entrenamiento de modelos
 
-### Step 1: Clone the Repository
+### Paso 1: Clonar el Repositorio
 
 ```bash
 git clone https://github.com/AnaCarolina-04/chestxray-xai.git
 cd chestxray-xai
 ```
 
-### Step 2: Create Virtual Environment
+### Paso 2: Crear Entorno Virtual
 
 ```bash
 # Windows
@@ -64,172 +62,172 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### Step 3: Install Dependencies
+### Paso 3: Instalar Dependencias
 
 ```bash
 cd XAI/app/Backend
 pip install -r requirements.txt
 ```
 
-### Step 4: Initialize Database
+### Paso 4: Inicializar Base de Datos
 
-The database will be automatically created when you first run the application. Alternatively, you can initialize it manually:
+La base de datos se creará automáticamente cuando ejecutes la aplicación por primera vez. Alternativamente, puedes inicializarla manualmente:
 
 ```bash
 python -c "from run import app, db; app.app_context().push(); db.create_all()"
 ```
 
-### Step 5: Run the Application
+### Paso 5: Ejecutar la Aplicación
 
 ```bash
 python run.py
 ```
 
-The application will be available at `http://localhost:5000`
+La aplicación estará disponible en `http://localhost:5000`
 
-## 💻 Usage
+## 💻 Uso
 
-### Starting the Server
+### Iniciar el Servidor
 
 ```bash
 cd XAI/app/Backend
 python run.py
 ```
 
-### Accessing the Application
+### Acceder a la Aplicación
 
-1. Open your web browser and navigate to `http://localhost:5000`
-2. The frontend interface will load automatically
-3. Navigate through the sections using the sidebar menu
+1. Abre tu navegador web y navega a `http://localhost:5000`
+2. La interfaz frontend se cargará automáticamente
+3. Navega por las secciones usando el menú lateral
 
-### Basic Workflow
+### Flujo de Trabajo Básico
 
-1. **Add a Patient**: Click on "Pacientes" → "Nuevo Paciente"
-2. **Create Follow-up**: Select a patient and add a follow-up record
-3. **Upload X-Ray**: Upload a chest X-ray image (with optional automatic AI processing)
-4. **View Analysis**: Check the diagnosis results and Grad-CAM visualizations
-5. **Validate Diagnosis**: Medical professionals can validate or modify AI predictions
+1. **Agregar un Paciente**: Haz clic en "Pacientes" → "Nuevo Paciente"
+2. **Crear Seguimiento**: Selecciona un paciente y agrega un registro de seguimiento
+3. **Subir Radiografía**: Sube una imagen de radiografía de tórax (con procesamiento automático de IA opcional)
+4. **Ver Análisis**: Revisa los resultados del diagnóstico y las visualizaciones Grad-CAM
+5. **Validar Diagnóstico**: Los profesionales médicos pueden validar o modificar las predicciones de la IA
 
-### Database Reset
+### Reiniciar Base de Datos
 
-To completely reset the database (useful for development):
+Para reiniciar completamente la base de datos (útil para desarrollo):
 
 ```bash
 python reset_database.py
 ```
 
-⚠️ **Warning**: This will delete all data including patients, diagnoses, and uploaded files.
+⚠️ **Advertencia**: Esto eliminará todos los datos incluyendo pacientes, diagnósticos y archivos subidos.
 
-## 📁 Project Structure
+## 📁 Estructura del Proyecto
 
 ```
 chestxray-xai/
 ├── XAI/
 │   └── app/
 │       ├── Backend/
-│       │   ├── routes/              # API endpoint blueprints
-│       │   │   ├── general.py       # Health check endpoints
-│       │   │   ├── patients.py      # Patient CRUD operations
-│       │   │   ├── xrays.py         # X-ray upload and management
-│       │   │   ├── diagnoses.py     # Diagnosis operations
-│       │   │   ├── predictions.py   # AI prediction endpoints
-│       │   │   └── frontend.py      # Static file serving
-│       │   ├── models.py            # SQLAlchemy database models
-│       │   ├── model_service.py     # ML model loading and inference
-│       │   ├── data_structures.py   # Data transfer objects
-│       │   ├── config.py            # Application configuration
-│       │   ├── run.py               # Flask application entry point
-│       │   └── requirements.txt     # Python dependencies
+│       │   ├── routes/              # Blueprints de endpoints de la API
+│       │   │   ├── general.py       # Endpoints de verificación de salud
+│       │   │   ├── patients.py      # Operaciones CRUD de pacientes
+│       │   │   ├── xrays.py         # Carga y gestión de rayos X
+│       │   │   ├── diagnoses.py     # Operaciones de diagnósticos
+│       │   │   ├── predictions.py   # Endpoints de predicción de IA
+│       │   │   └── frontend.py      # Servicio de archivos estáticos
+│       │   ├── models.py            # Modelos de base de datos SQLAlchemy
+│       │   ├── model_service.py     # Carga e inferencia de modelos ML
+│       │   ├── data_structures.py   # Objetos de transferencia de datos
+│       │   ├── config.py            # Configuración de la aplicación
+│       │   ├── run.py               # Punto de entrada de la aplicación Flask
+│       │   └── requirements.txt     # Dependencias de Python
 │       ├── frontend/
-│       │   ├── index.html           # Main HTML file
+│       │   ├── index.html           # Archivo HTML principal
 │       │   ├── css/
-│       │   │   └── styles.css       # Application styles
+│       │   │   └── styles.css       # Estilos de la aplicación
 │       │   └── js/
-│       │       └── app.js           # Frontend application logic
-│       ├── models/                  # Pre-trained model weights
-│       │   ├── densenet_best.pth    # Multi-label DenseNet121
-│       │   └── densenet_*.pth       # Binary classification models
-│       ├── notebooks/               # Jupyter notebooks
-│       │   └── X_rays.ipynb         # Data exploration and preprocessing
+│       │       └── app.js           # Lógica de la aplicación frontend
+│       ├── models/                  # Pesos de modelos pre-entrenados
+│       │   ├── densenet_best.pth    # DenseNet121 multi-etiqueta
+│       │   └── densenet_*.pth       # Modelos de clasificación binaria
+│       ├── notebooks/               # Notebooks de Jupyter
+│       │   └── X_rays.ipynb         # Exploración y preprocesamiento de datos
 │       └── Static/
-│           └── Uploads/             # Uploaded X-ray images
-└── reset_database.py                # Database reset utility
+│           └── Uploads/             # Imágenes de rayos X subidas
+└── reset_database.py                # Utilidad de reinicio de base de datos
 ```
 
-## 🔌 API Documentation
+## 🔌 Documentación de la API
 
-### Base URL
+### URL Base
 ```
 http://localhost:5000/api
 ```
 
 ### Endpoints
 
-#### Health Check
+#### Verificación de Salud
 ```http
 GET /api/health
 ```
-Returns server status and configuration.
+Retorna el estado del servidor y la configuración.
 
-#### Patients
+#### Pacientes
 
 ```http
-GET    /api/patients           # List all patients
-GET    /api/patients/:id       # Get patient details
-POST   /api/patients           # Create new patient
-PUT    /api/patients/:id       # Update patient
-DELETE /api/patients/:id       # Delete patient
+GET    /api/patients           # Listar todos los pacientes
+GET    /api/patients/:id       # Obtener detalles de un paciente
+POST   /api/patients           # Crear nuevo paciente
+PUT    /api/patients/:id       # Actualizar paciente
+DELETE /api/patients/:id       # Eliminar paciente
 ```
 
-**Create Patient Request Body:**
+**Cuerpo de Solicitud para Crear Paciente:**
 ```json
 {
-  "nombre": "John Doe",
+  "nombre": "Juan Pérez",
   "edad": 45,
   "sexo": "M"
 }
 ```
 
-#### X-Rays
+#### Rayos X
 
 ```http
-GET    /api/xrays              # List all X-rays
-GET    /api/xrays/:id          # Get X-ray details
-POST   /api/xrays              # Upload X-ray
-PUT    /api/xrays/:id          # Update X-ray
-DELETE /api/xrays/:id          # Delete X-ray
+GET    /api/xrays              # Listar todos los rayos X
+GET    /api/xrays/:id          # Obtener detalles de un rayo X
+POST   /api/xrays              # Subir rayo X
+PUT    /api/xrays/:id          # Actualizar rayo X
+DELETE /api/xrays/:id          # Eliminar rayo X
 ```
 
-**Upload X-Ray (multipart/form-data):**
-- `file`: Image file (required)
-- `followup_id`: Follow-up ID (required)
-- `auto_process`: Boolean, auto-run AI analysis (optional)
+**Subir Rayo X (multipart/form-data):**
+- `file`: Archivo de imagen (requerido)
+- `followup_id`: ID de seguimiento (requerido)
+- `auto_process`: Booleano, ejecutar análisis de IA automáticamente (opcional)
 
-#### Diagnoses
+#### Diagnósticos
 
 ```http
-GET    /api/diagnoses          # List all diagnoses
-GET    /api/diagnoses/:id      # Get diagnosis details
-POST   /api/diagnoses          # Create manual diagnosis
-PUT    /api/diagnoses/:id      # Update diagnosis
-DELETE /api/diagnoses/:id      # Delete diagnosis
+GET    /api/diagnoses          # Listar todos los diagnósticos
+GET    /api/diagnoses/:id      # Obtener detalles de un diagnóstico
+POST   /api/diagnoses          # Crear diagnóstico manual
+PUT    /api/diagnoses/:id      # Actualizar diagnóstico
+DELETE /api/diagnoses/:id      # Eliminar diagnóstico
 ```
 
-#### Predictions
+#### Predicciones
 
 ```http
-POST   /api/predict            # Run AI prediction on X-ray
+POST   /api/predict            # Ejecutar predicción de IA en rayo X
 ```
 
-**Prediction Request Body:**
+**Cuerpo de Solicitud de Predicción:**
 ```json
 {
   "xray_id": 1,
-  "model_type": "multi"  // or "single"
+  "model_type": "multi"  // o "single"
 }
 ```
 
-**Prediction Response:**
+**Respuesta de Predicción:**
 ```json
 {
   "predictions": {
@@ -242,164 +240,124 @@ POST   /api/predict            # Run AI prediction on X-ray
 }
 ```
 
-## 🧠 Model Architecture
+## 🧠 Arquitectura del Modelo
 
-### Multi-Label Model (DenseNet121)
+### Modelo Multi-etiqueta (DenseNet121)
 
-- **Architecture**: DenseNet121 pre-trained on ImageNet
-- **Input Size**: 224x224 pixels, grayscale converted to 3-channel
-- **Output**: 14 pathology probabilities (sigmoid activation)
-- **Training Strategy**: 
-  - Phase 1: Feature extraction (frozen backbone)
-  - Phase 2: Fine-tuning (unfrozen last layers)
-- **Optimization**: Adam optimizer with learning rate scheduling
-- **Loss Function**: Binary cross-entropy with class weighting
+- **Arquitectura**: DenseNet121 pre-entrenado en ImageNet
+- **Tamaño de Entrada**: 224x224 píxeles, escala de grises convertida a 3 canales
+- **Salida**: 14 probabilidades de patologías (activación sigmoide)
+- **Estrategia de Entrenamiento**: 
+  - Fase 1: Extracción de características (backbone congelado)
+  - Fase 2: Ajuste fino (últimas capas descongeladas)
+- **Optimización**: Optimizador Adam con programación de tasa de aprendizaje
+- **Función de Pérdida**: Entropía cruzada binaria con ponderación de clases
 
-### Detected Pathologies
+### Patologías Detectadas
 
-1. Atelectasis
-2. Cardiomegaly
-3. Effusion
-4. Infiltration
-5. Mass
-6. Nodule
-7. Pneumonia
-8. Pneumothorax
-9. Consolidation
+1. Atelectasia
+2. Cardiomegalia
+3. Derrame
+4. Infiltración
+5. Masa
+6. Nódulo
+7. Neumonía
+8. Neumotórax
+9. Consolidación
 10. Edema
-11. Emphysema
+11. Enfisema
 12. Fibrosis
-13. Pleural Thickening
+13. Engrosamiento Pleural
 14. Hernia
 
-### Binary Classification Models
+### Modelos de Clasificación Binaria
 
-Specialized models trained for individual pathologies with higher precision:
+Modelos especializados entrenados para patologías individuales con mayor precisión:
 - `densenet_Atelectasis_best.pth`
 - `densenet_Cardiomegaly_best.pth`
 - `densenet_Infiltration_best.pth`
 
-### Explainable AI (Grad-CAM)
+### IA Explicable (Grad-CAM)
 
-Gradient-weighted Class Activation Mapping (Grad-CAM) generates visual explanations by:
-1. Computing gradients of the target class with respect to feature maps
-2. Weighting feature maps by gradient importance
-3. Creating a heatmap overlay on the original X-ray
-4. Highlighting regions that influenced the prediction
+El Mapeo de Activación de Clase Ponderado por Gradiente (Grad-CAM) genera explicaciones visuales mediante:
+1. Cálculo de gradientes de la clase objetivo con respecto a los mapas de características
+2. Ponderación de mapas de características por importancia de gradiente
+3. Creación de un mapa de calor superpuesto en el rayo X original
+4. Resaltado de regiones que influyeron en la predicción
 
 ## 📊 Dataset
 
-The models were trained on the **NIH Chest X-ray Dataset**:
-- **Size**: 112,120 frontal-view X-ray images
-- **Patients**: 30,805 unique patients
-- **Labels**: 14 disease categories (multi-label)
-- **Format**: PNG images, various resolutions
-- **Source**: [NIH Clinical Center](https://www.nih.gov/news-events/news-releases/nih-clinical-center-provides-one-largest-publicly-available-chest-x-ray-datasets-scientific-community)
+Los modelos fueron entrenados en el **NIH Chest X-ray Dataset**:
+- **Tamaño**: 112,120 imágenes de rayos X de vista frontal
+- **Pacientes**: 30,805 pacientes únicos
+- **Etiquetas**: 14 categorías de enfermedades (multi-etiqueta)
+- **Formato**: Imágenes PNG, varias resoluciones
+- **Fuente**: [NIH Clinical Center](https://www.nih.gov/news-events/news-releases/nih-clinical-center-provides-one-largest-publicly-available-chest-x-ray-datasets-scientific-community)
 
-### Preprocessing Pipeline
+### Pipeline de Preprocesamiento
 
-1. **Resize**: Scale to 224x224 pixels
-2. **Normalization**: Pixel values normalized to [0, 1]
-3. **Augmentation** (training only):
-   - Random rotation (±10 degrees)
-   - Random horizontal flip
-   - Random zoom (±10%)
-   - Brightness adjustment
+1. **Redimensionar**: Escalar a 224x224 píxeles
+2. **Normalización**: Valores de píxeles normalizados a [0, 1]
+3. **Aumento** (solo entrenamiento):
+   - Rotación aleatoria (±10 grados)
+   - Volteo horizontal aleatorio
+   - Zoom aleatorio (±10%)
+   - Ajuste de brillo
 
-## 🏋️ Training
+## 🏋️ Entrenamiento
 
-### Training Scripts
+### Scripts de Entrenamiento
 
-Located in `XAI/app/training/` (if included):
-- `train_optimized.py`: Multi-label model training with Optuna hyperparameter optimization
-- `train_infiltration.py`: Binary classification model training
+Ubicados en `XAI/app/training/` (si están incluidos):
+- `train_optimized.py`: Entrenamiento de modelo multi-etiqueta con optimización de hiperparámetros Optuna
+- `train_infiltration.py`: Entrenamiento de modelo de clasificación binaria
 
-### Training Configuration
+### Configuración de Entrenamiento
 
 ```python
-# Example hyperparameters
+# Ejemplo de hiperparámetros
 BATCH_SIZE = 32
 LEARNING_RATE = 0.0001
-EPOCHS_PHASE1 = 10  # Feature extraction
-EPOCHS_PHASE2 = 20  # Fine-tuning
+EPOCHS_PHASE1 = 10  # Extracción de características
+EPOCHS_PHASE2 = 20  # Ajuste fino
 EARLY_STOPPING_PATIENCE = 5
 ```
 
-### Running Training
+### Ejecutar Entrenamiento
 
 ```bash
-# Ensure you have the dataset downloaded
+# Asegúrate de tener el dataset descargado
 python XAI/app/training/train_optimized.py
 ```
 
-### Evaluation Metrics
+### Métricas de Evaluación
 
-- **ROC-AUC**: Area under the receiver operating characteristic curve
-- **Precision**: True positives / (True positives + False positives)
-- **Recall**: True positives / (True positives + False negatives)
-- **F1-Score**: Harmonic mean of precision and recall
+- **ROC-AUC**: Área bajo la curva característica operativa del receptor
+- **Precisión**: Verdaderos positivos / (Verdaderos positivos + Falsos positivos)
+- **Recall**: Verdaderos positivos / (Verdaderos positivos + Falsos negativos)
+- **F1-Score**: Media armónica de precisión y recall
 
-## 🛠️ Technologies Used
+## 🛠️ Tecnologías Utilizadas
 
 ### Backend
-- **Flask 3.1**: Web framework
-- **SQLAlchemy 2.0**: ORM for database operations
-- **Flask-CORS**: Cross-origin resource sharing
-- **Pillow**: Image processing
+- **Flask 3.1**: Framework web
+- **SQLAlchemy 2.0**: ORM para operaciones de base de datos
+- **Flask-CORS**: Compartición de recursos de origen cruzado
+- **Pillow**: Procesamiento de imágenes
 
-### Machine Learning
-- **TensorFlow 2.18**: Deep learning framework
-- **PyTorch 2.6**: Alternative ML framework
-- **NumPy**: Numerical computations
-- **Optuna**: Hyperparameter optimization
+### Aprendizaje Automático
+- **TensorFlow 2.18**: Framework de aprendizaje profundo
+- **PyTorch 2.6**: Framework ML alternativo
+- **NumPy**: Computaciones numéricas
+- **Optuna**: Optimización de hiperparámetros
 
 ### Frontend
-- **Vanilla JavaScript**: No framework dependencies
-- **HTML5/CSS3**: Modern web standards
-- **Chart.js** (if used): Data visualization
+- **JavaScript Vanilla**: Sin dependencias de frameworks
+- **HTML5/CSS3**: Estándares web modernos
 
-### Database
-- **SQLite**: Lightweight relational database
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Commit Convention
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-- `feat:` New features
-- `fix:` Bug fixes
-- `docs:` Documentation changes
-- `refactor:` Code refactoring
-- `test:` Adding tests
-- `chore:` Maintenance tasks
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Authors
-
-- **Ana Carolina** - [@AnaCarolina-04](https://github.com/AnaCarolina-04)
-
-## 🙏 Acknowledgments
-
-- NIH Clinical Center for providing the chest X-ray dataset
-- TensorFlow and PyTorch communities for excellent documentation
-- DenseNet authors for the model architecture
-- Grad-CAM authors for the explainability technique
-
-## 📞 Contact
-
-For questions or support, please open an issue on GitHub or contact the maintainers.
+### Base de Datos
+- **SQLite**: Base de datos relacional ligera
 
 ---
 
-**Note**: This application is intended for research and educational purposes. It should not be used as a substitute for professional medical diagnosis. Always consult qualified healthcare professionals for medical decisions.
+**Nota**: Esta aplicación está destinada a fines de investigación y educación. No debe utilizarse como sustituto del diagnóstico médico profesional. Siempre consulta a profesionales de la salud calificados para decisiones médicas.
