@@ -2628,34 +2628,63 @@ function renderDiseases() {
     return content;
 }
 
-// 📌 DASHBOARD
+// 📌 DASHBOARD MEJORADO
 function renderDashboard() {
     const content = `
-        <div class="grid-2" style="margin-bottom: 2rem;">
-            <div class="card">
-                <h3><i class="fa-solid fa-users"></i> Pacientes por Género</h3>
-                <canvas id="chartGender"></canvas>
+        <!-- Stats Cards -->
+        <div id="dashboard-stats-cards"></div>
+
+        <!-- Charts Grid -->
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+                    <i class="fa-solid fa-users" style="color: #3b82f6;"></i> Pacientes por Género
+                </h3>
+                <canvas id="chartGender" style="max-height: 250px;"></canvas>
             </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-check-circle"></i> Exactitud del Modelo</h3>
-                <canvas id="chartAccuracy"></canvas>
+            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+                    <i class="fa-solid fa-check-circle" style="color: #10b981;"></i> Validación de Diagnósticos
+                </h3>
+                <canvas id="chartAccuracy" style="max-height: 250px;"></canvas>
             </div>
         </div>
-        <div class="card">
-            <h3><i class="fa-solid fa-disease"></i> Distribución de Enfermedades Detectadas</h3>
-            <canvas id="chartDiseases"></canvas>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+                    <i class="fa-solid fa-chart-bar" style="color: #8b5cf6;"></i> Enfermedades Detectadas
+                </h3>
+                <canvas id="chartDiseases" style="max-height: 300px;"></canvas>
+            </div>
+            <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+                    <i class="fa-solid fa-calendar-days" style="color: #f59e0b;"></i> Actividad Mensual
+                </h3>
+                <canvas id="chartMonthly" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <div class="card" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+            <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+                <i class="fa-solid fa-clock-rotate-left" style="color: #06b6d4;"></i> Diagnósticos Recientes
+            </h3>
+            <div id="recent-diagnoses-list"></div>
         </div>
     `;
 
     setTimeout(async () => {
         try {
-            const [patients, predictions, diseases] = await Promise.all([
+            const [patients, predictions, xrays] = await Promise.all([
                 fetch('/api/patients').then(r => r.json()),
                 fetch('/api/predictions/all').then(r => r.json()),
-                fetch('/api/diseases').then(r => r.json())
+                fetch('/api/xrays/all').then(r => r.json())
             ]);
 
-            // 1. Gender Chart
+            // Render stats cards
+            renderDashboardStatsCards(patients, predictions, xrays);
+
+            // 1. Gender Chart (Doughnut)
             const male = patients.filter(p => p.gender === 'M').length;
             const female = patients.filter(p => p.gender === 'F').length;
 
@@ -2666,13 +2695,28 @@ function renderDashboard() {
                         labels: ['Masculino', 'Femenino'],
                         datasets: [{
                             data: [male, female],
-                            backgroundColor: ['#3b82f6', '#ec4899']
+                            backgroundColor: ['#3b82f6', '#ec4899'],
+                            borderWidth: 0,
+                            hoverOffset: 10
                         }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    font: { size: 12, family: 'Inter' }
+                                }
+                            }
+                        }
                     }
                 });
             }
 
-            // 2. Accuracy Chart
+            // 2. Accuracy Chart (Pie)
             const correct = predictions.filter(p => p.is_correct === true).length;
             const incorrect = predictions.filter(p => p.is_correct === false).length;
             const pending = predictions.filter(p => p.is_correct === null).length;
@@ -2681,16 +2725,31 @@ function renderDashboard() {
                 new Chart(document.getElementById('chartAccuracy'), {
                     type: 'pie',
                     data: {
-                        labels: ['Correcto', 'Incorrecto', 'Pendiente Validación'],
+                        labels: ['Correcto', 'Incorrecto', 'Pendiente'],
                         datasets: [{
                             data: [correct, incorrect, pending],
-                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
+                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                            borderWidth: 0,
+                            hoverOffset: 10
                         }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    font: { size: 12, family: 'Inter' }
+                                }
+                            }
+                        }
                     }
                 });
             }
 
-            // 3. Diseases Distribution
+            // 3. Diseases Distribution (Bar)
             const diseaseCounts = {};
             predictions.forEach(p => {
                 const name = p.corrected_disease_name || p.disease_name;
@@ -2703,28 +2762,180 @@ function renderDashboard() {
                     data: {
                         labels: Object.keys(diseaseCounts),
                         datasets: [{
-                            label: 'Casos Detectados',
+                            label: 'Casos',
                             data: Object.values(diseaseCounts),
-                            backgroundColor: '#8b5cf6'
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 8,
+                            barThickness: 40
                         }]
                     },
                     options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
                         scales: {
-                            y: { beginAtZero: true }
+                            y: {
+                                beginAtZero: true,
+                                ticks: { font: { family: 'Inter' } }
+                            },
+                            x: {
+                                ticks: { font: { family: 'Inter', size: 11 } }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
                         }
                     }
                 });
             }
 
+            // 4. Monthly Activity (Line)
+            const monthlyData = {};
+            predictions.forEach(p => {
+                const month = new Date(p.predicted_at).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                monthlyData[month] = (monthlyData[month] || 0) + 1;
+            });
+
+            const months = Object.keys(monthlyData).slice(-6);
+            const counts = months.map(m => monthlyData[m]);
+
+            if (document.getElementById('chartMonthly')) {
+                new Chart(document.getElementById('chartMonthly'), {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Diagnósticos',
+                            data: counts,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#06b6d4'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { font: { family: 'Inter' } }
+                            },
+                            x: {
+                                ticks: { font: { family: 'Inter', size: 10 } }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // 5. Recent diagnoses list
+            renderRecentDiagnoses(predictions.slice(-5).reverse());
+
         } catch (error) {
-            console.error('Error loading dashboard data:', error);
+            console.error('Error loading dashboard:', error);
             const area = document.getElementById('content-area');
-            if (area) area.innerHTML += '<p style="color:red">Error cargando gráficos</p>';
+            if (area) area.innerHTML += '<p style="color: var(--danger-color);">Error cargando datos del dashboard</p>';
         }
     }, 100);
 
     return content;
 }
+
+function renderDashboardStatsCards(patients, predictions, xrays) {
+    const container = document.getElementById('dashboard-stats-cards');
+    if (!container) return;
+
+    const validated = predictions.filter(p => p.validated).length;
+    const pending = predictions.filter(p => !p.validated).length;
+    const accuracy = predictions.filter(p => p.is_correct === true).length;
+    const totalPredictions = validated > 0 ? validated : 1;
+    const accuracyPercent = Math.round((accuracy / totalPredictions) * 100);
+
+    container.innerHTML = `
+        <div class="status-summary-grid" style="margin-bottom: 2rem;">
+            <div class="status-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: none;">
+                <div class="status-info">
+                    <h4 style="color: #1e3a8a;">Total Pacientes</h4>
+                    <div class="count" style="color: #1e40af;">${patients.length}</div>
+                </div>
+                <div class="status-icon" style="background: white; color: #3b82f6;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+
+            <div class="status-card" style="background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%); border: none;">
+                <div class="status-info">
+                    <h4 style="color: #1e3a8a;">Radiografías Subidas</h4>
+                    <div class="count" style="color: #1e40af;">${xrays.length}</div>
+                </div>
+                <div class="status-icon" style="background: white; color: #3b82f6;">
+                    <i class="fa-solid fa-images"></i>
+                </div>
+            </div>
+
+            <div class="status-card" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border: none;">
+                <div class="status-info">
+                    <h4 style="color: #065f46;">Diagnósticos Realizados</h4>
+                    <div class="count" style="color: #047857;">${predictions.length}</div>
+                </div>
+                <div class="status-icon" style="background: white; color: #10b981;">
+                    <i class="fa-solid fa-stethoscope"></i>
+                </div>
+            </div>
+
+            <div class="status-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: none;">
+                <div class="status-info">
+                    <h4 style="color: #78350f;">Precisión del Modelo</h4>
+                    <div class="count" style="color: #92400e;">${accuracyPercent}%</div>
+                </div>
+                <div class="status-icon" style="background: white; color: #f59e0b;">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderRecentDiagnoses(recentPredictions) {
+    const container = document.getElementById('recent-diagnoses-list');
+    if (!container) return;
+
+    if (recentPredictions.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay diagnósticos recientes</p>';
+        return;
+    }
+
+    container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            ${recentPredictions.map(p => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8fafc; border-radius: 0.75rem; border-left: 4px solid #3b82f6;">
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">${p.patient_name}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                            <i class="fa-solid fa-stethoscope" style="color: #3b82f6;"></i> ${p.corrected_disease_name || p.disease_name}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                            ${new Date(p.predicted_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        </div>
+                        ${p.validated
+            ? `<span class="badge" style="background: #dcfce7; color: #166534; font-size: 0.7rem;">Validado</span>`
+            : `<span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.7rem;">Pendiente</span>`
+        }
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
 
 function renderExplainableAI() {
     const modules = [

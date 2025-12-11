@@ -1,18 +1,20 @@
 /* ==================== VARIABLES ==================== */
 :root {
-    --primary-color: #0f766e;
-    /* Teal-700 */
-    --primary-dark: #115e59;
-    /* Teal-800 */
-    --primary-light: #ccfbf1;
-    /* Teal-100 */
+    --primary-color: #3b82f6;
+    /* Blue-500 */
+    --primary-dark: #2563eb;
+    /* Blue-600 */
+    --primary-light: #dbeafe;
+    /* Blue-100 */
     --secondary-color: #64748b;
-    --background-color: #f1f5f9;
+    --background-color: #f0f9ff;
+    /* Sky-50 */
     --sidebar-bg: #ffffff;
     --card-bg: #ffffff;
     --text-main: #1e293b;
     --text-secondary: #64748b;
-    --border-color: #e2e8f0;
+    --border-color: #e0f2fe;
+    /* Sky-100 */
     --success-color: #10b981;
     --warning-color: #f59e0b;
     --danger-color: #ef4444;
@@ -20,6 +22,7 @@
     --header-height: 64px;
     --transition-speed: 0.3s;
 }
+
 
 /* ==================== RESET & BASE ==================== */
 * {
