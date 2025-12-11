@@ -70,90 +70,6 @@ def get_pending_xrays():
         "upload_date": x.upload_date.isoformat() if x.upload_date else None,
         "image_path": x.image_path
     } for x in xrays])
-
-@bp.get("/api/xrays/<int:xray_id>")
-@handle_errors
-def get_xray_detail(xray_id):
-    xray = Xray.query.get(xray_id)
-    if not xray:
-        return jsonify({"error": "Radiografía no encontrada"}), 404
-    
-    has_prediction = len(xray.predictions) > 0
-    prediction_name = xray.predictions[0].disease.name if has_prediction else None
-    
-    return jsonify({
-        "id": xray.id,
-        "patient_id": xray.patient_id,
-        "patient_name": xray.patient.name if xray.patient else "Desconocido",
-        "upload_date": xray.upload_date.isoformat() if xray.upload_date else None,
-        "has_prediction": has_prediction,
-        "prediction": prediction_name,
-        "image_path": xray.image_path
-    }), 200
-
-@bp.put("/api/xrays/<int:xray_id>")
-@handle_errors
-def update_xray(xray_id):
-    xray = Xray.query.get(xray_id)
-    if not xray:
-        return jsonify({"error": "Radiografía no encontrada"}), 404
-    
-    if "image" not in request.files:
-        return jsonify({"error": "No se envió archivo"}), 400
-    
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({"error": "Nombre de archivo vacío"}), 400
-    
-    # Delete old image file
-    old_path = Path(xray.image_path)
-    if old_path.exists():
-        old_path.unlink()
-    
-    # Save new image
-    image_bytes = file.read()
-    filename = f"{xray.patient_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
-    filepath = UPLOADS_DIR / filename
-    
-    with open(filepath, 'wb') as f:
-        f.write(image_bytes)
-    
-    xray.image_path = str(filepath)
-    xray.upload_date = datetime.now()
-    db.session.commit()
-    
-    return jsonify({
-        "id": xray.id,
-        "message": "Radiografía actualizada exitosamente",
-        "image_path": str(filepath)
-    }), 200
-
-@bp.delete("/api/xrays/<int:xray_id>")
-@handle_errors
-def delete_xray(xray_id):
-    xray = Xray.query.get(xray_id)
-    if not xray:
-        return jsonify({"error": "Radiografía no encontrada"}), 404
-    
-    # Delete image file
-    image_path = Path(xray.image_path)
-    if image_path.exists():
-        image_path.unlink()
-    
-    # Delete associated gradcam images
-    for prediction in xray.predictions:
-        if prediction.gradcam:
-            gradcam_path = Path(prediction.gradcam.image_path)
-            if gradcam_path.exists():
-                gradcam_path.unlink()
-    
-    # Database will cascade delete predictions and gradcams
-    db.session.delete(xray)
-    db.session.commit()
-    
-    return jsonify({"message": "Radiografía eliminada exitosamente"}), 200
-
-
 @bp.post("/api/xrays/<int:xray_id>/process")
 @handle_errors
 def process_existing_xray(xray_id):
@@ -238,3 +154,86 @@ def analyze_specific_disease(xray_id, disease_type):
         "heatmap_image": heatmap_b64,
         "bounding_box": result['bounding_box']
     })
+
+# Generic CRUD endpoints - Must be at the end to avoid route conflicts
+@bp.get("/api/xrays/<int:xray_id>")
+@handle_errors
+def get_xray_detail(xray_id):
+    xray = Xray.query.get(xray_id)
+    if not xray:
+        return jsonify({"error": "Radiografía no encontrada"}), 404
+    
+    has_prediction = len(xray.predictions) > 0
+    prediction_name = xray.predictions[0].disease.name if has_prediction else None
+    
+    return jsonify({
+        "id": xray.id,
+        "patient_id": xray.patient_id,
+        "patient_name": xray.patient.name if xray.patient else "Desconocido",
+        "upload_date": xray.upload_date.isoformat() if xray.upload_date else None,
+        "has_prediction": has_prediction,
+        "prediction": prediction_name,
+        "image_path": xray.image_path
+    }), 200
+
+@bp.put("/api/xrays/<int:xray_id>")
+@handle_errors
+def update_xray(xray_id):
+    xray = Xray.query.get(xray_id)
+    if not xray:
+        return jsonify({"error": "Radiografía no encontrada"}), 404
+    
+    if "image" not in request.files:
+        return jsonify({"error": "No se envió archivo"}), 400
+    
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({"error": "Nombre de archivo vacío"}), 400
+    
+    # Delete old image file
+    old_path = Path(xray.image_path)
+    if old_path.exists():
+        old_path.unlink()
+    
+    # Save new image
+    image_bytes = file.read()
+    filename = f"{xray.patient_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+    filepath = UPLOADS_DIR / filename
+    
+    with open(filepath, 'wb') as f:
+        f.write(image_bytes)
+    
+    xray.image_path = str(filepath)
+    xray.upload_date = datetime.now()
+    db.session.commit()
+    
+    return jsonify({
+        "id": xray.id,
+        "message": "Radiografía actualizada exitosamente",
+        "image_path": str(filepath)
+    }), 200
+
+@bp.delete("/api/xrays/<int:xray_id>")
+@handle_errors
+def delete_xray(xray_id):
+    xray = Xray.query.get(xray_id)
+    if not xray:
+        return jsonify({"error": "Radiografía no encontrada"}), 404
+    
+    # Delete image file
+    image_path = Path(xray.image_path)
+    if image_path.exists():
+        image_path.unlink()
+    
+    # Delete associated gradcam images
+    for prediction in xray.predictions:
+        if prediction.gradcam:
+            gradcam_path = Path(prediction.gradcam.image_path)
+            if gradcam_path.exists():
+                gradcam_path.unlink()
+    
+    # Database will cascade delete predictions and gradcams
+    db.session.delete(xray)
+    db.session.commit()
+    
+    return jsonify({"message": "Radiografía eliminada exitosamente"}), 200
