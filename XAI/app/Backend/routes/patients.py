@@ -7,7 +7,6 @@ bp = Blueprint('patients', __name__)
 @bp.get("/api/patients")
 @handle_errors
 def get_patients():
-    print("🔍 Solicitando todos los pacientes...")
     patients = Patient.query.all()
     result = []
     for p in patients:

@@ -9,6 +9,10 @@ except ImportError:
 
 from PIL import Image
 import numpy as np
+import warnings
+
+# Suppress PyTorch backward hook warnings
+warnings.filterwarnings('ignore', category=FutureWarning, module='torch.nn.modules.module')
 
 try:
     import cv2
@@ -46,7 +50,6 @@ def _get_image_hash(image_bytes):
 def load_densenet_model(path, num_classes=None, is_single_label=False):
     """Loads a DenseNet121 model with specified weights, adapting structure to state_dict."""
     path_obj = Path(path)
-    print(f"DEBUG: Checking model path: {path_obj.absolute()}")
     
     if not path_obj.exists():
         print(f"WARNING: Model not found at {path_obj.absolute()}")
@@ -89,7 +92,6 @@ def load_densenet_model(path, num_classes=None, is_single_label=False):
         torch.cuda.empty_cache() if torch.cuda.is_available() else None
         
         structure_type = "Sequential" if has_sequential else "Linear"
-        print(f"DEBUG: Model loaded from {path_obj.name} (Structure: {structure_type}, Output: {out_features})")
         return model
 
     except Exception as e:
@@ -110,7 +112,6 @@ _models_map = {}
 def get_main_model():
     global _main_model
     if _main_model is None:
-        print("⏳ Loading Main DenseNet Model...")
         _main_model = load_densenet_model(MODELS_DIR / "best_densenet.pth", num_classes=5)
     return _main_model
 
@@ -122,7 +123,6 @@ def get_single_label_model(disease_type):
         return _models_map[disease_type]
 
     # Memory Management: Unload other single label models
-    print(f"🧹 Clearing memory for {disease_type} model...")
     keys_to_remove = [k for k in _models_map.keys() if k != disease_type]
     for k in keys_to_remove:
         if _models_map[k] is not None:
@@ -132,7 +132,6 @@ def get_single_label_model(disease_type):
     import gc
     gc.collect()
     
-    print(f"⏳ Loading Model for {disease_type}...")
     path = None
     if disease_type == 'Cardiomegaly':
         path = MODELS_DIR / "densenet_Cardiomegaly_singlelabel.pth"
@@ -260,7 +259,6 @@ def process_xray(image_bytes):
     
     img_hash = _get_image_hash(image_bytes)
     if img_hash in _cache:
-        print(f"✅ Using cached result for {img_hash[:8]}")
         return _cache[img_hash]
 
     model = get_main_model()
@@ -307,13 +305,9 @@ def process_single_label_analysis(image_bytes, disease_type):
         # Load and preprocess image
         img = Image.open(io.BytesIO(image_bytes)).convert('RGB')
         input_tensor = transform(img).unsqueeze(0)
-
-        print(f"✅ Model loaded. Starting inference for {disease_type}...")
         
         # Process (gradients needed for Grad-CAM)
         cam, prob, _, bbox = get_gradcam_and_bbox(model, input_tensor, is_multi_label=False)
-        
-        print(f"✅ Inference complete for {disease_type}. Probability: {prob}")
         
         encoded_img = create_overlay(img, cam)
         

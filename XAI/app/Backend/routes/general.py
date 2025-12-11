@@ -40,7 +40,6 @@ def db_status():
 @bp.get("/api/diseases")
 @handle_errors
 def get_diseases():
-    print("🔍 Consultando todas las enfermedades...")
     diseases = Disease.query.all()
     result = [{
         "id": d.id,
