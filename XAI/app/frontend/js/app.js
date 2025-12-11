@@ -1,82 +1,46 @@
 // Mock Data
-const patients = [
-    { id: 1, name: 'Juan Pérez', age: 45, gender: 'M', lastExam: '2023-10-15', status: 'Normal' },
-    { id: 2, name: 'María García', age: 32, gender: 'F', lastExam: '2023-10-20', status: 'Revisión' },
-    { id: 3, name: 'Carlos López', age: 58, gender: 'M', lastExam: '2023-10-22', status: 'Crítico' },
-    { id: 4, name: 'Ana Martínez', age: 27, gender: 'F', lastExam: '2023-10-25', status: 'Normal' },
-    { id: 5, name: 'Luis Rodríguez', age: 64, gender: 'M', lastExam: '2023-10-28', status: 'Revisión' },
-];
+/* ==================== NOTIFICATIONS ==================== */
+function showNotification(message, type = 'success') {
+    let container = document.getElementById('notification-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        document.body.appendChild(container);
+    }
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : '⚠️');
+    notification.innerHTML = `<span class="notification-icon">${icon}</span><span class="notification-message">${message}</span>`;
+    container.appendChild(notification);
+    setTimeout(() => {
+        notification.classList.add('hide');
+        notification.addEventListener('transitionend', () => notification.remove());
+    }, 3000);
+}
 
-const diseases = [
-    { name: 'Neumonía', cases: 120, trend: 'up' },
-    { name: 'Tuberculosis', cases: 45, trend: 'down' },
-    { name: 'COVID-19', cases: 80, trend: 'stable' },
-    { name: 'Fibrosis', cases: 30, trend: 'up' },
-];
+// Mock Data removed (unused)
 
 // State
 let currentSection = 'patients';
 
 // DOM Elements
-const sidebar = document.getElementById('sidebar');
-const toggleSidebarBtn = document.getElementById('toggle-sidebar');
-const closeSidebarBtn = document.getElementById('close-sidebar');
-const contentArea = document.getElementById('content-area');
-const pageTitle = document.getElementById('page-title');
-const navItems = document.querySelectorAll('.nav-item');
+// DOM Elements logic moved to DOMContentLoaded to avoid null references
+// Navigation logic unified in DOMContentLoaded
 
-// Navigation Logic
-function initNavigation() {
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const target = item.dataset.target;
-            setActiveSection(target);
-            
-            // Close sidebar on mobile after selection
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('open');
-            }
-        });
-    });
-
-    toggleSidebarBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-    });
-
-    closeSidebarBtn.addEventListener('click', () => {
-        sidebar.classList.remove('open');
-    });
-}
-
-function setActiveSection(sectionId) {
-    // Update Nav UI
-    navItems.forEach(item => {
-        if (item.dataset.target === sectionId) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
-    });
-
-    currentSection = sectionId;
-    renderContent(sectionId);
-}
 
 // Content Rendering
 function renderContent(sectionId) {
     contentArea.innerHTML = '<div class="loading-spinner">Cargando...</div>';
-    
+
     setTimeout(() => {
         let content = '';
         let title = '';
 
-        switch(sectionId) {
+        switch (sectionId) {
             case 'patients':
                 title = 'Pacientes';
                 content = renderPatients();
                 break;
-<<<<<<< HEAD
             case 'upload-xray':
                 title = 'Subir Radiografía';
                 content = loadUploadXray();
@@ -97,8 +61,6 @@ function renderContent(sectionId) {
                 title = 'Gestión de Diagnósticos';
                 content = renderDiagnoses();
                 break;
-=======
->>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
             case 'diseases':
                 title = 'Enfermedades';
                 content = renderDiseases();
@@ -107,25 +69,6 @@ function renderContent(sectionId) {
                 title = 'IA Explicable';
                 content = renderExplainableAI();
                 break;
-<<<<<<< HEAD
-=======
-            case 'apply-cnn':
-                title = 'Aplicar CNN';
-                content = renderApplyCNN();
-                break;
-            case 'grad-cam':
-                title = 'Grad-CAM';
-                content = renderGradCAM();
-                break;
-            case 'validation':
-                title = 'Validación de Diagnóstico';
-                content = renderValidation();
-                break;
-            case 'view-by-disease':
-                title = 'Vista por Enfermedad';
-                content = renderViewByDisease();
-                break;
->>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
             default:
                 title = 'Pacientes';
                 content = renderPatients();
@@ -133,57 +76,161 @@ function renderContent(sectionId) {
 
         pageTitle.textContent = title;
         contentArea.innerHTML = content;
-        
-<<<<<<< HEAD
+
         attachDynamicListeners();
     }, 300);
-=======
-        // Re-attach event listeners for dynamic content if needed
-        attachDynamicListeners();
-    }, 300); // Fake loading delay
->>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
 }
 
 // Render Functions
+// 📌 Render Patients with Modal
 function renderPatients() {
-<<<<<<< HEAD
     const content = `
+        <div id="patients-stats-container"></div>
+
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h2><i class="fa-solid fa-users"></i> Lista de Pacientes</h2>
-                <button class="btn btn-primary" onclick="setActiveSection('upload-xray')">
+                <button class="btn btn-primary" id="btn-new-patient-main">
                     <i class="fa-solid fa-plus"></i> Nuevo Paciente
                 </button>
             </div>
             <div id="patients-table-container"></div>
         </div>
+
+        <!-- Shared Patient Modal -->
+        <div id="patient-modal-main" class="modal" style="display:none;">
+            <div class="modal-content">
+                <h3 id="patient-modal-title">Crear Nuevo Paciente</h3>
+                <input type="hidden" id="patient-modal-id">
+                <div class="form-group">
+                    <label class="form-label">Nombre Completo</label>
+                    <input type="text" id="patient-modal-name" class="form-control" placeholder="Ej: Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Edad</label>
+                    <input type="number" id="patient-modal-age" class="form-control" placeholder="Ej: 45">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Género</label>
+                    <select id="patient-modal-gender" class="form-control">
+                        <option value="M">Masculino</option>
+                        <option value="F">Femenino</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-outline" type="button" id="patient-modal-cancel">Cancelar</button>
+                    <button class="btn btn-primary" type="button" id="patient-modal-save">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="delete-patient-modal" class="modal" style="display:none;">
+            <div class="modal-content" style="max-width: 450px; text-align: center;">
+                <div style="font-size: 3rem; color: var(--danger-color); margin-bottom: 1rem;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <h3 style="margin-bottom: 1rem;">¿Estás seguro?</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;" id="delete-modal-msg">
+                    Estás a punto de eliminar a este paciente. Esta acción no se puede deshacer.
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button class="btn btn-outline" type="button" onclick="closeDeleteModal()">Cancelar</button>
+                    <button class="btn btn-danger" type="button" id="btn-confirm-delete" style="background: var(--danger-color); color: white;">Eliminar</button>
+                </div>
+            </div>
+        </div>
     `;
-    
+
     setTimeout(async () => {
         const container = document.getElementById('patients-table-container');
         container.innerHTML = '<p>Cargando pacientes...</p>';
-        
+
+        // Init Modal Listeners
+        initPatientModalListeners();
+
         try {
             const response = await fetch('/api/patients');
             const patients = await response.json();
-            
+
             if (patients.length === 0) {
                 container.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No hay pacientes registrados</p>';
                 return;
             }
-            
+
+            // Stats Calculation
+            const totalPatients = patients.length;
+            const newThisMonth = patients.filter(p => {
+                const d = new Date(p.created_at);
+                const now = new Date();
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            }).length;
+            const maleCount = patients.filter(p => p.gender === 'M').length;
+            const femaleCount = patients.filter(p => p.gender === 'F').length;
+
+            // Updated HTML content with Stats
+            const statsHTML = `
+                <div class="status-summary-grid">
+                    <div class="status-card">
+                        <div class="status-info">
+                            <h4>Total Pacientes</h4>
+                            <div class="count">${totalPatients}</div>
+                        </div>
+                        <div class="status-icon blue">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-info">
+                            <h4>Nuevos (Mes)</h4>
+                            <div class="count">${newThisMonth}</div>
+                        </div>
+                        <div class="status-icon green">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-info">
+                            <h4>Hombres / Mujeres</h4>
+                            <div class="count" style="font-size: 1.1rem;">${maleCount} / ${femaleCount}</div>
+                        </div>
+                        <div class="status-icon yellow">
+                            <i class="fa-solid fa-venus-mars"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Insert Stats
+            const statsContainer = document.getElementById('patients-stats-container');
+            if (statsContainer) statsContainer.innerHTML = statsHTML;
+
             const rows = patients.map(p => {
                 return `
                     <tr>
-                        <td>${p.id}</td>
-                        <td>${p.name}</td>
-                        <td>${p.age}</td>
-                        <td>${p.gender === 'M' ? 'Masculino' : 'Femenino'}</td>
+                        <td>
+                            <div style="font-weight: 500;">${p.name}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">ID: ${p.id}</div>
+                        </td>
+                        <td>${p.age} años</td>
+                        <td>
+                            <span class="badge" style="background: ${p.gender === 'M' ? '#eff6ff' : '#fdf2f8'}; color: ${p.gender === 'M' ? '#1d4ed8' : '#be185d'};">
+                                ${p.gender === 'M' ? 'Masculino' : 'Femenino'}
+                            </span>
+                        </td>
                         <td>${new Date(p.created_at).toLocaleDateString()}</td>
                         <td>
-                            <button class="btn btn-outline btn-sm" onclick="viewPatientXrays(${p.id}, '${p.name}')">
-                                <i class="fa-solid fa-image"></i> Ver Radiografías
-                            </button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="action-btn view" onclick="viewPatientXrays(${p.id}, '${p.name}')" title="Ver Radiografías">
+                                    <i class="fa-solid fa-image"></i>
+                                </button>
+                                <button class="action-btn edit" onclick="openEditPatientModal(${p.id}, '${p.name}', ${p.age}, '${p.gender}')" title="Editar">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="action-btn delete" onclick="openDeletePatientModal(${p.id}, '${p.name}')" title="Eliminar">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -194,11 +241,10 @@ function renderPatients() {
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
+                                <th>Paciente</th>
                                 <th>Edad</th>
                                 <th>Género</th>
-                                <th>Fecha de Registro</th>
+                                <th>Registro</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -208,14 +254,152 @@ function renderPatients() {
                     </table>
                 </div>
             `;
-            
+
         } catch (error) {
             console.error(error);
             container.innerHTML = '<p style="color: var(--danger-color);">Error al cargar pacientes</p>';
         }
     }, 100);
-    
+
     return content;
+}
+
+// 📌 Modal Logic
+function initPatientModalListeners() {
+    const modal = document.getElementById('patient-modal-main');
+    const btnNew = document.getElementById('btn-new-patient-main');
+    const btnCancel = document.getElementById('patient-modal-cancel');
+    const btnSave = document.getElementById('patient-modal-save');
+
+    if (!modal) return;
+
+    // Open Create
+    btnNew.addEventListener('click', () => {
+        document.getElementById('patient-modal-title').textContent = 'Crear Nuevo Paciente';
+        document.getElementById('patient-modal-id').value = '';
+        document.getElementById('patient-modal-name').value = '';
+        document.getElementById('patient-modal-age').value = '';
+        document.getElementById('patient-modal-gender').value = 'M';
+        document.getElementById('patient-modal-save').textContent = 'Crear Paciente';
+        modal.style.display = 'flex';
+    });
+
+    // Cancel
+    btnCancel.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    // Save (Create or Update)
+    btnSave.addEventListener('click', async () => {
+        const id = document.getElementById('patient-modal-id').value;
+        const name = document.getElementById('patient-modal-name').value;
+        const age = document.getElementById('patient-modal-age').value;
+        const gender = document.getElementById('patient-modal-gender').value;
+
+        if (!name || !age) {
+            showNotification('Por favor completa todos los campos', 'warning');
+            return;
+        }
+
+        const isEdit = !!id;
+        const url = isEdit ? `/api/patients/${id}` : '/api/patients';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, age: parseInt(age), gender })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Error desconocido');
+            }
+
+            const data = await response.json();
+            showNotification(isEdit ? 'Paciente actualizado' : `Paciente creado: ${data.name}`, 'success');
+
+            modal.style.display = 'none';
+            renderContent('patients'); // Refresh list
+
+        } catch (error) {
+            console.error(error);
+            showNotification(`Error: ${error.message}`, 'error');
+        }
+    });
+}
+
+// 📌 Open Edit Modal (Global access)
+window.openEditPatientModal = function (id, name, age, gender) {
+    const modal = document.getElementById('patient-modal-main');
+    if (!modal) return;
+
+    document.getElementById('patient-modal-title').textContent = 'Editar Paciente';
+    document.getElementById('patient-modal-id').value = id;
+    document.getElementById('patient-modal-name').value = name;
+    document.getElementById('patient-modal-age').value = age;
+    document.getElementById('patient-modal-gender').value = gender;
+    document.getElementById('patient-modal-save').textContent = 'Guardar Cambios';
+
+    modal.style.display = 'flex';
+};
+
+// 📌 DELETE MODAL LOGIC
+
+let patientToDeleteId = null;
+
+window.openDeletePatientModal = function (id, name) {
+    patientToDeleteId = id;
+    const modal = document.getElementById('delete-patient-modal');
+    const msg = document.getElementById('delete-modal-msg');
+
+    // Configurar mensaje
+    msg.innerHTML = `Estás a punto de eliminar al paciente <strong>${name}</strong>. <br>Se borrarán todas sus radiografías y diagnósticos.`;
+
+    // Mostrar modal
+    modal.style.display = 'flex';
+
+    // Configurar botón de confirmación
+    const confirmBtn = document.getElementById('btn-confirm-delete');
+
+    // Limpiar listeners anteriores para evitar múltiples llamadas
+    const newBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+    newBtn.addEventListener('click', () => {
+        executeDeletePatient(id);
+    });
+};
+
+window.closeDeleteModal = function () {
+    document.getElementById('delete-patient-modal').style.display = 'none';
+};
+
+function executeDeletePatient(id) {
+    const confirmBtn = document.getElementById('btn-confirm-delete');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Eliminando...';
+
+    fetch(`/api/patients/${id}`, {
+        method: 'DELETE'
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) throw new Error(data.error);
+
+            showNotification('Paciente eliminado correctamente', 'success');
+            closeDeleteModal();
+            renderContent('patients'); // Recargar tabla
+        })
+        .catch(error => {
+            console.error(error);
+            showNotification(`Error al eliminar: ${error.message}`, 'error');
+        })
+        .finally(() => {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = 'Eliminar';
+        });
 }
 
 // 📌 NUEVA: Ver radiografías de un paciente
@@ -223,13 +407,13 @@ async function viewPatientXrays(patientId, patientName) {
     try {
         const response = await fetch(`/api/patients/${patientId}/xrays`);
         const xrays = await response.json();
-        
+
         sessionStorage.setItem('patient_filter', JSON.stringify({ id: patientId, name: patientName }));
         setActiveSection('all-xrays');
-        
+
     } catch (error) {
         console.error(error);
-        alert('❌ Error al cargar radiografías del paciente');
+        showNotification('Error al cargar radiografías del paciente', 'error');
     }
 }
 
@@ -299,12 +483,12 @@ function loadUploadXray() {
             </div>
         </div>
     `;
-    
+
     setTimeout(() => {
         initUploadXrayListeners();
         loadPatients();
     }, 100);
-    
+
     return content;
 }
 
@@ -319,12 +503,12 @@ function initUploadXrayListeners() {
     const newPatientBtn = document.getElementById('new-patient-btn');
     const cancelPatientBtn = document.getElementById('cancel-patient-btn');
     const createPatientBtn = document.getElementById('create-patient-btn');
-    
+
     if (!fileInput || !uploadZone) {
         console.error('❌ Elementos de upload no encontrados');
         return;
     }
-    
+
     let selectedFile = null;
 
     // ✅ SOLO UN LISTENER: Botón seleccionar archivo
@@ -376,7 +560,7 @@ function initUploadXrayListeners() {
     // ✅ Subir radiografía
     uploadBtn.addEventListener('click', async () => {
         if (!selectedFile || !patientSelect.value) {
-            alert('⚠️ Por favor selecciona un archivo y un paciente');
+            showNotification('Por favor selecciona un archivo y un paciente', 'warning');
             return;
         }
 
@@ -387,13 +571,13 @@ function initUploadXrayListeners() {
             console.log('📤 Iniciando upload...');
             console.log('  - Archivo:', selectedFile.name);
             console.log('  - Paciente ID:', patientSelect.value);
-            
+
             const formData = new FormData();
             formData.append('file', selectedFile);
             formData.append('patient_id', patientSelect.value);
 
             console.log('📡 Enviando a /api/upload-xray...');
-            
+
             const response = await fetch('/api/upload-xray', {
                 method: 'POST',
                 body: formData
@@ -409,20 +593,20 @@ function initUploadXrayListeners() {
 
             const data = await response.json();
             console.log('✅ Upload exitoso:', data);
-            
-            alert(`✅ Radiografía subida exitosamente para ${data.patient_name}`);
-            
+
+            showNotification(`Radiografía subida exitosamente para ${data.patient_name}`, 'success');
+
             // Limpiar y redirigir
             selectedFile = null;
             fileNameDiv.style.display = 'none';
             fileInput.value = '';
             patientSelect.value = '';
-            
+
             setActiveSection('all-xrays');
 
         } catch (error) {
             console.error('❌ Error completo:', error);
-            alert(`❌ Error al subir la radiografía: ${error.message}`);
+            showNotification(`Error al subir la radiografía: ${error.message}`, 'error');
         } finally {
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '<i class="fa-solid fa-upload"></i> Subir Radiografía';
@@ -446,7 +630,7 @@ function initUploadXrayListeners() {
         const gender = document.getElementById('patient-gender').value;
 
         if (!name || !age) {
-            alert('Por favor completa todos los campos');
+            showNotification('Por favor completa todos los campos', 'warning');
             return;
         }
 
@@ -463,19 +647,19 @@ function initUploadXrayListeners() {
             }
 
             const data = await response.json();
-            alert(`✅ Paciente creado: ${data.name}`);
-            
+            showNotification(`Paciente creado: ${data.name}`, 'success');
+
             // Limpiar formulario
             document.getElementById('patient-name').value = '';
             document.getElementById('patient-age').value = '';
             document.getElementById('patient-gender').value = 'M';
-            
+
             document.getElementById('create-patient-modal').style.display = 'none';
             loadPatients();
-            
+
         } catch (error) {
             console.error('Error completo:', error);
-            alert(`❌ Error al crear paciente: ${error.message}`);
+            showNotification(`Error al crear paciente: ${error.message}`, 'error');
         }
     });
 }
@@ -483,11 +667,11 @@ function initUploadXrayListeners() {
 async function loadPatients() {
     const select = document.getElementById('patient-select');
     if (!select) return;
-    
+
     try {
         const response = await fetch('/api/patients');
         const patients = await response.json();
-        
+
         select.innerHTML = '<option value="">-- Seleccionar paciente --</option>';
         patients.forEach(p => {
             select.innerHTML += `<option value="${p.id}">${p.name} (${p.age} años)</option>`;
@@ -519,11 +703,11 @@ function renderAllXrays() {
             <div id="all-xrays-list"></div>
         </div>
     `;
-    
+
     setTimeout(async () => {
         await loadAllXraysData();
         await populatePatientFilter();
-        
+
         const filterSelect = document.getElementById('filter-patient');
         if (filterSelect) {
             filterSelect.addEventListener('change', (e) => {
@@ -531,31 +715,31 @@ function renderAllXrays() {
             });
         }
     }, 100);
-    
+
     return content;
 }
 
 async function loadAllXraysData() {
     const listDiv = document.getElementById('all-xrays-list');
     listDiv.innerHTML = '<p>Cargando radiografías...</p>';
-    
+
     try {
         const response = await fetch('/api/xrays/all');
-        
+
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
+
         const xrays = await response.json();
         window.allXraysData = xrays;
-        
+
         if (xrays.length === 0) {
             listDiv.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No hay radiografías subidas. <a href="#" onclick="setActiveSection(\'upload-xray\'); return false;">Subir una ahora</a></p>';
             return;
         }
-        
+
         displayXrays(xrays);
-        
+
     } catch (error) {
         console.error('❌ Error completo:', error);
         listDiv.innerHTML = `
@@ -571,12 +755,12 @@ async function loadAllXraysData() {
 
 function displayXrays(xrays) {
     const listDiv = document.getElementById('all-xrays-list');
-    
+
     if (!xrays || xrays.length === 0) {
         listDiv.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No hay radiografías para mostrar</p>';
         return;
     }
-    
+
     listDiv.innerHTML = `
         <div class="grid-3">
             ${xrays.map(x => `
@@ -613,15 +797,15 @@ function displayXrays(xrays) {
 async function populatePatientFilter() {
     const select = document.getElementById('filter-patient');
     if (!select) return;
-    
+
     try {
         const response = await fetch('/api/patients');
         const patients = await response.json();
-        
+
         patients.forEach(p => {
             select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
         });
-        
+
         // Aplicar filtro si viene de ver paciente
         const patientFilter = sessionStorage.getItem('patient_filter');
         if (patientFilter) {
@@ -630,7 +814,7 @@ async function populatePatientFilter() {
             filterXraysByPatient(filter.id);
             sessionStorage.removeItem('patient_filter');
         }
-        
+
     } catch (error) {
         console.error('Error al cargar pacientes:', error);
     }
@@ -638,7 +822,7 @@ async function populatePatientFilter() {
 
 function filterXraysByPatient(patientId) {
     if (!window.allXraysData) return;
-    
+
     if (patientId === "") {
         displayXrays(window.allXraysData);
     } else {
@@ -649,6 +833,7 @@ function filterXraysByPatient(patientId) {
 
 function viewXrayDetail(xrayId) {
     sessionStorage.setItem('current_xray_id', xrayId);
+    sessionStorage.setItem('analysis_previous_section', currentSection);
     setActiveSection('analysis');
 }
 
@@ -719,12 +904,12 @@ function renderUploadXray() {
             </div>
         </div>
     `;
-    
+
     setTimeout(() => {
         initUploadXrayListeners();
         loadPatientsForUpload();
     }, 100);
-    
+
     return content;
 }
 
@@ -738,7 +923,7 @@ function initUploadXrayListeners() {
     const newPatientBtn = document.getElementById('new-patient-btn');
     const cancelPatientBtn = document.getElementById('cancel-patient-btn');
     const createPatientBtn = document.getElementById('create-patient-btn');
-    
+
     let selectedFile = null;
 
     // Click en área de upload
@@ -760,7 +945,7 @@ function initUploadXrayListeners() {
         e.preventDefault();
         uploadArea.style.borderColor = 'var(--border-color)';
         uploadArea.style.background = 'transparent';
-        
+
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('image/')) {
             selectedFile = file;
@@ -790,7 +975,7 @@ function initUploadXrayListeners() {
     // Subir radiografía
     uploadBtn.addEventListener('click', async () => {
         if (!selectedFile || !patientSelect.value) {
-            alert('⚠️ Por favor selecciona un archivo y un paciente');
+            showNotification('Por favor selecciona un archivo y un paciente', 'warning');
             return;
         }
 
@@ -813,13 +998,13 @@ function initUploadXrayListeners() {
             }
 
             const data = await response.json();
-            alert(`✅ Radiografía subida exitosamente`);
-            
+            showNotification('Radiografía subida exitosamente', 'success');
+
             setActiveSection('all-xrays');
 
         } catch (error) {
             console.error(error);
-            alert(`❌ Error: ${error.message}`);
+            showNotification(`Error: ${error.message}`, 'error');
         } finally {
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '<i class="fa-solid fa-upload"></i> Subir Radiografía';
@@ -841,7 +1026,7 @@ function initUploadXrayListeners() {
         const gender = document.getElementById('patient-gender').value;
 
         if (!name || !age) {
-            alert('Por favor completa todos los campos');
+            showNotification('Por favor completa todos los campos', 'warning');
             return;
         }
 
@@ -858,16 +1043,16 @@ function initUploadXrayListeners() {
             }
 
             const data = await response.json();
-            alert(`✅ Paciente creado: ${data.name}`);
-            
+            showNotification(`Paciente creado: ${data.name}`, 'success');
+
             document.getElementById('patient-name').value = '';
             document.getElementById('patient-age').value = '';
             document.getElementById('create-patient-modal').style.display = 'none';
-            
+
             loadPatientsForUpload();
-            
+
         } catch (error) {
-            alert(`❌ Error: ${error.message}`);
+            showNotification(`Error: ${error.message}`, 'error');
         }
     });
 }
@@ -875,11 +1060,11 @@ function initUploadXrayListeners() {
 async function loadPatientsForUpload() {
     const select = document.getElementById('patient-select');
     if (!select) return;
-    
+
     try {
         const response = await fetch('/api/patients');
         const patients = await response.json();
-        
+
         select.innerHTML = '<option value="">-- Seleccionar paciente --</option>';
         patients.forEach(p => {
             select.innerHTML += `<option value="${p.id}">${p.name} (${p.age} años)</option>`;
@@ -904,20 +1089,20 @@ function renderPendingXrays() {
             <div id="pending-list"></div>
         </div>
     `;
-    
+
     setTimeout(async () => {
         const listDiv = document.getElementById('pending-list');
         listDiv.innerHTML = '<p>Cargando...</p>';
-        
+
         try {
             const response = await fetch('/api/xrays/pending');
             const xrays = await response.json();
-            
+
             if (xrays.length === 0) {
                 listDiv.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No hay radiografías pendientes</p>';
                 return;
             }
-            
+
             listDiv.innerHTML = xrays.map(x => `
                 <div class="xray-item" style="border: 1px solid var(--border-color); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
                     <div>
@@ -929,13 +1114,13 @@ function renderPendingXrays() {
                     </button>
                 </div>
             `).join('');
-            
+
         } catch (error) {
             console.error(error);
             listDiv.innerHTML = '<p style="color: var(--danger-color);">Error al cargar radiografías</p>';
         }
     }, 100);
-    
+
     return content;
 }
 
@@ -950,21 +1135,84 @@ async function processXray(xrayId) {
         const response = await fetch(`/api/xrays/${xrayId}/process`, {
             method: 'POST'
         });
-        
+
         const data = await response.json();
-        
+
         // Guardar en sessionStorage
         sessionStorage.setItem('current_xray_id', xrayId);
         sessionStorage.setItem('current_prediction', JSON.stringify(data));
-        
+
         // Redirigir a análisis unificado
+        sessionStorage.setItem('analysis_previous_section', currentSection);
         setActiveSection('analysis');
-        
+
     } catch (error) {
         console.error(error);
-        alert('❌ Error al procesar la radiografía');
+        showNotification('Error al procesar la radiografía', 'error');
         btn.disabled = false;
         btn.innerHTML = originalHTML;
+    }
+}
+
+// 📌 Toggle Bounding Box
+function toggleBoundingBox() {
+    const checkbox = document.getElementById('bbox-toggle');
+    const container = document.getElementById('gradcam-container');
+    const existingBbox = document.getElementById('bbox-overlay');
+
+    if (!checkbox || !container) return;
+
+    if (checkbox.checked) {
+        if (existingBbox) return; // Ya existe
+
+        // Obtener datos de bbox desde sessionStorage
+        let dataStr = sessionStorage.getItem('validate_prediction_data');
+        // Si no hay de validacion, buscamos current (pero validate tiene prioridad en esta vista si ambos existen)
+        // La logica en renderAnalysis prioriza validateId. Haremos lo mismo.
+        if (!dataStr && sessionStorage.getItem('current_prediction')) {
+            dataStr = sessionStorage.getItem('current_prediction');
+        }
+
+        if (!dataStr) {
+            showNotification('No hay datos de predicción disponibles.', 'warning');
+            checkbox.checked = false;
+            return;
+        }
+
+        const data = JSON.parse(dataStr);
+        const bbox = data.bounding_box;
+
+        if (!bbox) {
+            showNotification('No se pudo calcular la región de interés para esta imagen.', 'warning');
+            checkbox.checked = false;
+            return;
+        }
+
+        // Crear elemento bbox
+        const box = document.createElement('div');
+        box.id = 'bbox-overlay';
+        box.style.position = 'absolute';
+        box.style.border = '3px solid #ef4444'; // Red
+        box.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+        box.style.zIndex = '10';
+        box.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
+        box.style.borderRadius = '4px';
+        box.style.pointerEvents = 'none'; // Permitir clicks a través
+
+        // Calcular porcentajes (asumiendo 224x224 base)
+        const scale = 100 / 224;
+
+        box.style.left = (bbox.x * scale) + '%';
+        box.style.top = (bbox.y * scale) + '%';
+        box.style.width = (bbox.width * scale) + '%';
+        box.style.height = (bbox.height * scale) + '%';
+
+        container.appendChild(box);
+
+    } else {
+        if (existingBbox) {
+            existingBbox.remove();
+        }
     }
 }
 
@@ -975,9 +1223,9 @@ function renderAnalysis() {
     const validatePredictionData = sessionStorage.getItem('validate_prediction_data');
     const currentXrayId = sessionStorage.getItem('current_xray_id');
     const predictionData = sessionStorage.getItem('current_prediction');
-    
+
     let data, xrayId, predictionId;
-    
+
     if (validatePredictionId && validatePredictionData) {
         // Viene desde la tabla de diagnósticos
         data = JSON.parse(validatePredictionData);
@@ -1007,11 +1255,11 @@ function renderAnalysis() {
             </div>
         `;
     }
-    
+
     const isValidated = data.validated || false;
     const displayDisease = data.corrected_disease_name || data.disease_name || data.prediction;
     const wasCorrected = data.corrected_disease_name !== null;
-    
+
     const content = `
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -1038,7 +1286,7 @@ function renderAnalysis() {
                             <i class="fa-solid fa-calendar"></i> Fecha: ${new Date(data.predicted_at || data.upload_date).toLocaleDateString()}
                         </p>
                     </div>
-                    <button class="btn" style="background: rgba(255,255,255,0.2); color: white; border: none;" onclick="setActiveSection('all-xrays')">
+                    <button class="btn" style="background: rgba(255,255,255,0.2); color: white; border: none;" onclick="goBackFromAnalysis()">
                         <i class="fa-solid fa-arrow-left"></i> Volver
                     </button>
                 </div>
@@ -1064,11 +1312,28 @@ function renderAnalysis() {
                     <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fa-solid fa-fire"></i> Mapa de Calor (Grad-CAM)
                     </h3>
-                    <div style="position: relative; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <div id="gradcam-container" style="position: relative; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                         <img src="/api/gradcam/${data.gradcam_id}/image" 
                              alt="Grad-CAM" 
                              style="width: 100%; display: block; background: #f0f0f0;">
                     </div>
+                    
+                    <details style="margin-top: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem; background: #fff;">
+                        <summary style="cursor: pointer; font-weight: 600; color: var(--primary-color); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                            <span><i class="fa-solid fa-vector-square"></i> Bounding Box</span>
+                            <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem;"></i>
+                        </summary>
+                        <div style="margin-top: 1rem; padding: 0.5rem; border-top: 1px solid #eee;">
+                            <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="bbox-toggle" style="width: 1.25rem; height: 1.25rem;" onchange="toggleBoundingBox()">
+                                <div>
+                                    <span style="display: block; font-weight: 500;">Bounding Box</span>
+                                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Recuadro de la zona de interés</span>
+                                </div>
+                            </label>
+                        </div>
+                    </details>
+
                     <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.75rem; text-align: center;">
                         <i class="fa-solid fa-info-circle"></i> Las zonas rojas indican áreas de mayor atención del modelo
                     </p>
@@ -1101,6 +1366,12 @@ function renderAnalysis() {
                                 <i class="fa-solid fa-robot"></i> Diagnóstico automático por CNN
                             </div>
                         `}
+                        
+                        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.2);">
+                            <button class="btn btn-sm" style="background: rgba(255,255,255,0.2); color: white; border: none; width: 100%;" onclick="setActiveSection('explainable-ai')">
+                                <i class="fa-solid fa-circle-question"></i> ¿Qué es una CNN?
+                            </button>
+                        </div>
                     </div>
 
                     ${data.doctor_notes ? `
@@ -1111,6 +1382,58 @@ function renderAnalysis() {
                             <p style="margin: 0; font-size: 0.9rem;">${data.doctor_notes}</p>
                         </div>
                     ` : ''}
+                </div>
+                </div>
+            </div>
+
+            <!-- Panel de Recomendaciones Individuales -->
+            <div style="background: #f0f9ff; padding: 2rem; border-radius: 0.75rem; border: 1px solid #bae6fd; margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1.5rem; color: #0369a1;">
+                    <i class="fa-solid fa-user-doctor"></i> Recomendaciones Individuales
+                </h3>
+                <p style="color: #0c4a6e; margin-bottom: 1.5rem;">
+                    Análisis detallado con modelos específicos para cada patología.
+                </p>
+                
+                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                    <!-- Card Cardiomegaly -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; flex: 1; border: 1px solid #e2e8f0; min-width: 300px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 style="margin: 0;"><i class="fa-solid fa-heart-pulse"></i> Cardiomegaly</h4>
+                            <button id="btn-analyze-cardio" class="btn btn-outline btn-sm" onclick="analyzeSpecificDisease('${xrayId}', 'Cardiomegaly')">
+                                Analizar
+                            </button>
+                        </div>
+                        <div id="result-Cardiomegaly" style="display: none; margin-top: 1rem;">
+                            <!-- Resultados inyectados aquí -->
+                        </div>
+                    </div>
+
+                    <!-- Card Nodule -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; flex: 1; border: 1px solid #e2e8f0; min-width: 300px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 style="margin: 0;"><i class="fa-solid fa-circle"></i> Nodule</h4>
+                            <button id="btn-analyze-nodule" class="btn btn-outline btn-sm" onclick="analyzeSpecificDisease('${xrayId}', 'Nodule')">
+                                Analizar
+                            </button>
+                        </div>
+                        <div id="result-Nodule" style="display: none; margin-top: 1rem;">
+                            <!-- Resultados inyectados aquí -->
+                        </div>
+                    </div>
+
+                    <!-- Card Atelectasis -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; flex: 1; border: 1px solid #e2e8f0; min-width: 300px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 style="margin: 0;"><i class="fa-solid fa-lungs"></i> Atelectasis</h4>
+                            <button id="btn-analyze-atelectasis" class="btn btn-outline btn-sm" onclick="analyzeSpecificDisease('${xrayId}', 'Atelectasis')">
+                                Analizar
+                            </button>
+                        </div>
+                        <div id="result-Atelectasis" style="display: none; margin-top: 1rem;">
+                            <!-- Resultados inyectados aquí -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1185,26 +1508,26 @@ function renderAnalysis() {
             `}
         </div>
     `;
-    
+
     setTimeout(() => {
         if (!isValidated) {
             initValidationForm();
             loadDiseasesForValidation();
         }
     }, 100);
-    
+
     return content;
 }
 
 function initValidationForm() {
     const radioOptions = document.querySelectorAll('.radio-option');
     const correctionSection = document.getElementById('correction-section');
-    
+
     radioOptions.forEach(option => {
-        option.addEventListener('click', function() {
+        option.addEventListener('click', function () {
             const radio = this.querySelector('input[type="radio"]');
             radio.checked = true;
-            
+
             // Actualizar estilos
             radioOptions.forEach(opt => {
                 opt.style.borderColor = '#e5e7eb';
@@ -1212,12 +1535,12 @@ function initValidationForm() {
             });
             this.style.borderColor = 'var(--primary-color)';
             this.style.background = '#eff6ff';
-            
+
             // Mostrar/ocultar sección de corrección
             correctionSection.style.display = radio.value === 'incorrect' ? 'block' : 'none';
         });
     });
-    
+
     // Trigger inicial
     document.querySelector('.radio-option').click();
 }
@@ -1225,11 +1548,11 @@ function initValidationForm() {
 async function loadDiseasesForValidation() {
     const select = document.getElementById('corrected-disease');
     if (!select) return;
-    
+
     try {
         const response = await fetch('/api/diseases');
         const diseases = await response.json();
-        
+
         select.innerHTML = '<option value="">Seleccionar enfermedad...</option>';
         diseases.forEach(d => {
             select.innerHTML += `<option value="${d.id}">${d.name}</option>`;
@@ -1243,35 +1566,35 @@ async function submitValidationForm(predictionId) {
     const isCorrect = document.querySelector('input[name="validation"]:checked').value === 'correct';
     const correctedDiseaseId = document.getElementById('corrected-disease')?.value;
     const notes = document.getElementById('validation-notes').value;
-    
+
     if (!isCorrect && !correctedDiseaseId) {
-        alert('⚠️ Por favor selecciona el diagnóstico correcto');
+        showNotification('Por favor selecciona el diagnóstico correcto', 'warning');
         return;
     }
-    
+
     const payload = {
         validated: true,
         is_correct: isCorrect,
         corrected_disease_id: !isCorrect ? parseInt(correctedDiseaseId) : null,
         doctor_notes: notes
     };
-    
+
     console.log('📤 Enviando validación:', payload);
     console.log('📤 Prediction ID:', predictionId);
-    
+
     try {
         const response = await fetch(`/api/predictions/${predictionId}/validate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        
+
         console.log('📡 Respuesta status:', response.status);
         console.log('📡 Content-Type:', response.headers.get('Content-Type'));
-        
+
         const responseText = await response.text();
         console.log('📡 Respuesta raw:', responseText);
-        
+
         let data;
         try {
             data = JSON.parse(responseText);
@@ -1280,25 +1603,25 @@ async function submitValidationForm(predictionId) {
             console.error('❌ Respuesta recibida:', responseText);
             throw new Error('El servidor devolvió una respuesta inválida');
         }
-        
+
         if (!response.ok) {
             throw new Error(data.error || 'Error al validar');
         }
-        
-        alert('✅ Diagnóstico validado exitosamente');
-        
+
+        showNotification('Diagnóstico validado exitosamente', 'success');
+
         // Limpiar sessionStorage
         sessionStorage.removeItem('validate_prediction_id');
         sessionStorage.removeItem('validate_prediction_data');
         sessionStorage.removeItem('current_xray_id');
         sessionStorage.removeItem('current_prediction');
-        
+
         // Redirigir a diagnósticos
         setActiveSection('diagnoses');
-        
+
     } catch (error) {
         console.error('❌ Error completo:', error);
-        alert(`❌ Error al validar: ${error.message}`);
+        showNotification(`Error al validar: ${error.message}`, 'error');
     }
 }
 
@@ -1306,7 +1629,7 @@ function cancelValidation() {
     // Limpiar sessionStorage
     sessionStorage.removeItem('validate_prediction_id');
     sessionStorage.removeItem('validate_prediction_data');
-    
+
     // Redirigir a diagnósticos
     setActiveSection('diagnoses');
 }
@@ -1334,19 +1657,21 @@ function renderDiagnoses() {
                 </select>
             </div>
             
+            <div id="diagnosis-stats-container"></div>
+            
             <div id="diagnoses-list"></div>
         </div>
     `;
-    
+
     setTimeout(async () => {
         await loadAllDiagnosesAndPredictions();
         await loadDiagnosisFilters();
-        
+
         // Event listeners para filtros
         document.getElementById('filter-patient-diagnosis').addEventListener('change', filterDiagnoses);
         document.getElementById('filter-status').addEventListener('change', filterDiagnoses);
     }, 100);
-    
+
     return content;
 }
 
@@ -1354,28 +1679,28 @@ function renderDiagnoses() {
 async function loadAllDiagnosesAndPredictions() {
     const listDiv = document.getElementById('diagnoses-list');
     listDiv.innerHTML = '<p>Cargando diagnósticos...</p>';
-    
+
     try {
         // Cargar predicciones de la CNN
         const predictionsResponse = await fetch('/api/predictions/all');
         const predictions = await predictionsResponse.json();
-        
+
         // Combinar solo predicciones
         const combined = predictions.map(p => ({
             ...p,
             type: 'prediction',
             status: p.validated ? 'validated' : 'pending'
         }));
-        
+
         // Ordenar por fecha
         combined.sort((a, b) => {
             const dateA = new Date(a.predicted_at);
             const dateB = new Date(b.predicted_at);
             return dateB - dateA;
         });
-        
+
         window.allDiagnosesData = combined;
-        
+
         if (combined.length === 0) {
             listDiv.innerHTML = `
                 <p style="text-align:center; color: var(--text-secondary); padding: 2rem;">
@@ -1385,82 +1710,142 @@ async function loadAllDiagnosesAndPredictions() {
             `;
             return;
         }
-        
+
         displayDiagnosesAndPredictions(combined);
-        
+
     } catch (error) {
         console.error(error);
-        listDiv.innerHTML = '<p style="color: var(--danger-color);">Error al cargar diagnósticos</p>';
+        listDiv.innerHTML = '<p style="color: var(--danger-color); text-align: center;">Error al cargar diagnósticos</p>';
     }
 }
 
-function displayDiagnosesAndPredictions(items) {
+function filterDiagnoses() {
+    if (!window.allDiagnosesData) return;
+
+    const patientId = document.getElementById('filter-patient-diagnosis').value;
+    const status = document.getElementById('filter-status').value;
+
+    let filtered = window.allDiagnosesData;
+
+    if (patientId) {
+        filtered = filtered.filter(d => d.patient_id == patientId);
+    }
+
+    if (status) {
+        filtered = filtered.filter(d => d.status === status);
+    }
+    displayDiagnosesAndPredictions(filtered);
+}
+
+// 📌 Mostrar diagnósticos y predicciones en tabla
+function displayDiagnosesAndPredictions(data) {
     const listDiv = document.getElementById('diagnoses-list');
-    
-    const rows = items.map(item => {
-        const isValidated = item.status === 'validated';
-        const displayDisease = item.corrected_disease_name || item.disease_name;
-        const wasCorrected = item.corrected_disease_name !== null;
-        
-        return `
-            <tr>
-                <td>
-                    ${item.patient_name}
-                    <span style="font-size: 0.75rem; color: var(--primary-color); margin-left: 0.5rem;">
-                        <i class="fa-solid fa-brain"></i> CNN
-                    </span>
-                </td>
-                <td>
-                    <strong>${displayDisease}</strong>
-                    ${wasCorrected ? `
-                        <br><small style="color: var(--text-secondary); text-decoration: line-through;">${item.disease_name}</small>
-                        <span style="font-size: 0.75rem; color: var(--warning-color); margin-left: 0.5rem;">
-                            (Corregido)
-                        </span>
-                    ` : ''}
-                </td>
-                <td>
-                    <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 0.375rem; background: ${isValidated ? '#10b98120' : '#f59e0b20'}; color: ${isValidated ? '#10b981' : '#f59e0b'}; font-weight: 600;">
-                        ${isValidated ? '<i class="fa-solid fa-check-circle"></i> Validado' : '<i class="fa-solid fa-clock"></i> Pendiente'}
-                    </span>
-                </td>
-                <td>${new Date(item.predicted_at).toLocaleDateString()}</td>
-                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    ${item.doctor_notes || '-'}
-                </td>
-                <td>
-                    ${!isValidated ? `
-                        <button class="btn btn-primary btn-sm" onclick="validatePrediction(${item.id})">
-                            <i class="fa-solid fa-check"></i> Validar
-                        </button>
-                    ` : `
-                        <button class="btn btn-outline btn-sm" onclick="viewPredictionDetails(${item.id})">
-                            <i class="fa-solid fa-eye"></i> Ver
-                        </button>
-                    `}
-=======
-    const rows = patients.map(p => {
-        let badgeClass = 'badge-success';
-        if (p.status === 'Revisión') badgeClass = 'badge-warning';
-        if (p.status === 'Crítico') badgeClass = 'badge-danger';
+
+    if (!data || data.length === 0) {
+        listDiv.innerHTML = `
+            <p style="text-align:center; color: var(--text-secondary); padding: 2rem;">
+                No hay diagnósticos que coincidan con los filtros
+            </p>
+        `;
+        return;
+    }
+
+    // Calcular estadísticas
+    const totalCount = data.length;
+    const validatedCount = data.filter(d => d.validated).length;
+    const pendingCount = totalCount - validatedCount;
+    const correctCount = data.filter(d => d.is_correct).length;
+
+    // Mostrar estadísticas
+    const statsContainer = document.getElementById('diagnosis-stats-container');
+    if (statsContainer) {
+        statsContainer.innerHTML = `
+            <div class="status-summary-grid" style="margin-bottom: 1.5rem;">
+                <div class="status-card">
+                    <div class="status-info">
+                        <h4>Total Diagnósticos</h4>
+                        <div class="count">${totalCount}</div>
+                    </div>
+                    <div class="status-icon blue">
+                        <i class="fa-solid fa-notes-medical"></i>
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-info">
+                        <h4>Validados</h4>
+                        <div class="count">${validatedCount}</div>
+                    </div>
+                    <div class="status-icon green">
+                        <i class="fa-solid fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-info">
+                        <h4>Pendientes</h4>
+                        <div class="count">${pendingCount}</div>
+                    </div>
+                    <div class="status-icon yellow">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-info">
+                        <h4>Correctos</h4>
+                        <div class="count">${correctCount}</div>
+                    </div>
+                    <div class="status-icon green">
+                        <i class="fa-solid fa-thumbs-up"></i>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Generar tabla
+    const rows = data.map(d => {
+        const displayDisease = d.corrected_disease_name || d.disease_name;
+        const statusBadge = d.validated
+            ? '<span class="badge" style="background: #dcfce7; color: #166534;">Validado</span>'
+            : '<span class="badge" style="background: #fef3c7; color: #92400e;">Pendiente</span>';
+
+        const correctnessBadge = d.validated
+            ? (d.is_correct
+                ? '<span class="badge" style="background: #dbeafe; color: #1e40af;">Correcto</span>'
+                : '<span class="badge" style="background: #fee2e2; color: #991b1b;">Incorrecto</span>')
+            : '<span class="badge" style="background: #f3f4f6; color: #6b7280;">-</span>';
 
         return `
             <tr>
-                <td>${p.id}</td>
-                <td>${p.name}</td>
-                <td>${p.age}</td>
-                <td>${p.gender}</td>
-                <td>${p.lastExam}</td>
-                <td><span class="badge ${badgeClass}">${p.status}</span></td>
                 <td>
-                    <button class="btn btn-outline btn-sm" onclick="alert('Ver detalles de ${p.name}')">Ver</button>
->>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
+                    <div style="font-weight: 500;">${d.patient_name}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">ID: ${d.patient_id}</div>
+                </td>
+                <td>
+                    <strong style="color: var(--primary-color);">${displayDisease}</strong>
+                    ${d.corrected_disease_name ? `<br><small style="color: var(--text-secondary);">Original: ${d.disease_name}</small>` : ''}
+                </td>
+                <td>${new Date(d.predicted_at).toLocaleDateString()}</td>
+                <td>${statusBadge}</td>
+                <td>${correctnessBadge}</td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="action-btn view" onclick="viewXrayDetail(${d.xray_id})" title="Ver Radiografía">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        ${!d.validated ? `
+                            <button class="action-btn edit" onclick="validatePrediction(${d.id})" title="Validar">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        ` : ''}
+                        <button class="action-btn delete" onclick="deleteDiagnosis(${d.id}, 'prediction')" title="Eliminar">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
     }).join('');
-<<<<<<< HEAD
-    
+
     listDiv.innerHTML = `
         <div class="table-container">
             <table>
@@ -1468,9 +1853,9 @@ function displayDiagnosesAndPredictions(items) {
                     <tr>
                         <th>Paciente</th>
                         <th>Diagnóstico</th>
-                        <th>Estado</th>
                         <th>Fecha</th>
-                        <th>Notas</th>
+                        <th>Estado</th>
+                        <th>Validación</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -1478,51 +1863,219 @@ function displayDiagnosesAndPredictions(items) {
                     ${rows}
                 </tbody>
             </table>
-=======
-
-    return `
-        <div class="card">
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Edad</th>
-                            <th>Género</th>
-                            <th>Última Radiografía</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                    </tbody>
-                </table>
-            </div>
->>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
         </div>
     `;
 }
 
-<<<<<<< HEAD
-function filterDiagnoses() {
-    if (!window.allDiagnosesData) return;
-    
-    const patientId = document.getElementById('filter-patient-diagnosis').value;
-    const status = document.getElementById('filter-status').value;
-    
-    let filtered = window.allDiagnosesData;
-    
-    if (patientId) {
-        filtered = filtered.filter(d => d.patient_id == patientId);
+// 📌 Cargar filtros de pacientes
+async function loadDiagnosisFilters() {
+    const select = document.getElementById('filter-patient-diagnosis');
+    if (!select) return;
+
+    try {
+        const response = await fetch('/api/patients');
+        const patients = await response.json();
+
+        select.innerHTML = '<option value="">Todos los pacientes</option>';
+        patients.forEach(p => {
+            select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        });
+    } catch (error) {
+        console.error('Error cargando filtros de pacientes:', error);
     }
-    
-    if (status) {
-        filtered = filtered.filter(d => d.status === status);
+}
+
+// 📌 Eliminar Diagnóstico/Predicción
+function deleteDiagnosis(id, type) {
+    showDeleteConfirmModal(id, type);
+}
+
+async function executeDeleteDiagnosis(id, type) {
+    const endpoint = type === 'prediction' ? `/api/predictions/${id}` : `/api/diagnoses/${id}`;
+
+    try {
+        const response = await fetch(endpoint, { method: 'DELETE' });
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error);
+
+        showNotification('Registro eliminado', 'success');
+        loadAllDiagnosesAndPredictions(); // Recargar lista
+
+    } catch (error) {
+        console.error(error);
+        showNotification(`Error al eliminar: ${error.message}`, 'error');
     }
-    
-    displayDiagnosesAndPredictions(filtered);
+}
+
+// 📌 Modal de confirmación para eliminar diagnóstico
+function showDeleteConfirmModal(id, type) {
+    const modal = document.createElement('div');
+    modal.id = 'delete-confirm-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        animation: fadeIn 0.2s ease-out;
+    `;
+
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+        ">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="
+                    width: 60px;
+                    height: 60px;
+                    background: #fee2e2;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 1rem;
+                ">
+                    <i class="fa-solid fa-trash" style="font-size: 1.5rem; color: #dc2626;"></i>
+                </div>
+                <h3 style="margin: 0 0 0.5rem 0; color: #1f2937;">¿Eliminar diagnóstico?</h3>
+                <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">
+                    Esta acción no se puede deshacer. El registro será eliminado permanentemente.
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem;">
+                <button 
+                    onclick="closeDeleteConfirmModal()" 
+                    class="btn btn-outline" 
+                    style="flex: 1;"
+                >
+                    <i class="fa-solid fa-times"></i> Cancelar
+                </button>
+                <button 
+                    onclick="confirmDeleteDiagnosis(${id}, '${type}')" 
+                    class="btn" 
+                    style="flex: 1; background: #dc2626; color: white;"
+                >
+                    <i class="fa-solid fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Cerrar al hacer clic fuera del modal
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeDeleteConfirmModal();
+        }
+    });
+}
+
+function closeDeleteConfirmModal() {
+    const modal = document.getElementById('delete-confirm-modal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease-out';
+        setTimeout(() => modal.remove(), 200);
+    }
+}
+
+function confirmDeleteDiagnosis(id, type) {
+    closeDeleteConfirmModal();
+    executeDeleteDiagnosis(id, type);
+}
+
+
+
+// 📌 Análisis Específico (Cardiomegaly / Nodule / Atelectasis)
+async function analyzeSpecificDisease(xrayId, diseaseType) {
+    const containerId = `result-${diseaseType}`;
+    let btnId = '';
+
+    if (diseaseType === 'Cardiomegaly') btnId = 'btn-analyze-cardio';
+    else if (diseaseType === 'Nodule') btnId = 'btn-analyze-nodule';
+    else if (diseaseType === 'Atelectasis') btnId = 'btn-analyze-atelectasis';
+
+    const container = document.getElementById(containerId);
+    const btn = document.getElementById(btnId);
+
+    // UI Loading
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+    container.style.display = 'block';
+    container.innerHTML = '<p style="color: var(--text-secondary);">Ejecutando modelo dedicado...</p>';
+
+    try {
+        const response = await fetch(`/api/xrays/${xrayId}/analyze/${diseaseType}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error || 'Error en análisis');
+
+        // Render Result - Cambio de probabilidad a Positivo/Negativo
+        const isPositive = data.probability > 0.5;
+        const color = isPositive ? '#ef4444' : '#10b981';
+        const label = isPositive ? 'POSITIVO' : 'NEGATIVO';
+        const icon = isPositive ? 'fa-circle-exclamation' : 'fa-circle-check';
+
+        container.innerHTML = `
+            <div style="display: flex; gap: 1rem; align-items: flex-start; margin-top: 1rem;">
+                <!-- Miniatura Heatmap -->
+                <div style="width: 100px; height: 100px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; flex-shrink: 0; cursor: pointer;" onclick="openImageModal('data:image/jpeg;base64,${data.heatmap_image}')">
+                    <img src="data:image/jpeg;base64,${data.heatmap_image}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                
+                <div style="flex: 1;">
+                    <div style="font-weight: 700; font-size: 1.1rem; color: ${color}; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid ${icon}"></i> ${label}
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+                        Modelo especializado ${diseaseType}.<br>
+                        <small>Click en la imagen para ampliar.</small>
+                    </div>
+                </div>
+            </div>
+            `;
+
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = `<p style="color: red;"><i class="fa-solid fa-triangle-exclamation"></i> Error: ${error.message}</p>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Re-analizar';
+    }
+}
+
+function openImageModal(imgSrc) {
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+    modal.style.zIndex = '9999';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.onclick = () => modal.remove();
+
+    modal.innerHTML = `<img src="${imgSrc}" style="max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">`;
+    document.body.appendChild(modal);
 }
 
 // 📌 Validar predicción con modal simplificado
@@ -1530,17 +2083,20 @@ async function validatePrediction(predictionId) {
     try {
         const response = await fetch(`/api/predictions/${predictionId}`);
         const prediction = await response.json();
-        
+
         // Guardar datos en sessionStorage
         sessionStorage.setItem('validate_prediction_id', predictionId);
         sessionStorage.setItem('validate_prediction_data', JSON.stringify(prediction));
-        
-        // Redirigir a sección de validación
-        setActiveSection('validation');
-        
+        // También establecemos el current_xray_id para que renderAnalysis cargue la imagen correctamente
+        sessionStorage.setItem('current_xray_id', prediction.xray_id);
+
+        // Redirigir a sección de análisis (donde está la validación unificada)
+        sessionStorage.setItem('analysis_previous_section', currentSection);
+        setActiveSection('analysis');
+
     } catch (error) {
         console.error(error);
-        alert('❌ Error al cargar la predicción');
+        showNotification('Error al cargar la predicción', 'error');
     }
 }
 
@@ -1553,11 +2109,11 @@ function viewPredictionDetails(predictionId) {
 async function loadDiagnosisFilters() {
     const select = document.getElementById('filter-patient-diagnosis');
     if (!select) return;
-    
+
     try {
         const response = await fetch('/api/patients');
         const patients = await response.json();
-        
+
         patients.forEach(p => {
             select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
         });
@@ -1570,7 +2126,7 @@ async function loadDiagnosisFilters() {
 //    NAVEGACIÓN PRINCIPAL
 // ============================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggle-sidebar');
     const closeBtn = document.getElementById('close-sidebar');
@@ -1587,32 +2143,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Navigation items
     navItems.forEach(item => {
-        item.addEventListener('click', function(e) {
+        item.addEventListener('click', function (e) {
             e.preventDefault();
-            
-            // Remove active class from all
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.remove('active');
-            });
-            
-            // Add active class to clicked item's parent
-            this.parentElement.classList.add('active');
-            
-            // Get target section
             const target = this.getAttribute('data-target');
-            
+
             // Close sidebar on mobile
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove('open');
             }
-            
-            // Render content
-            renderContent(target);
+
+            // Use unified function
+            setActiveSection(target);
         });
     });
 
     // Initial render
-    renderContent('patients');
+    setActiveSection('patients');
 });
 
 // ============================
@@ -1622,14 +2168,14 @@ document.addEventListener('DOMContentLoaded', function() {
 function renderContent(sectionId) {
     const contentArea = document.getElementById('content-area');
     const pageTitle = document.getElementById('page-title');
-    
+
     contentArea.innerHTML = '<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>';
-    
+
     setTimeout(() => {
         let content = '';
         let title = '';
 
-        switch(sectionId) {
+        switch (sectionId) {
             case 'patients':
                 title = 'Pacientes';
                 content = renderPatients();
@@ -1658,6 +2204,10 @@ function renderContent(sectionId) {
                 title = 'Enfermedades';
                 content = renderDiseases();
                 break;
+            case 'dashboard':
+                title = 'Panel de Estadísticas';
+                content = renderDashboard();
+                break;
             case 'explainable-ai':
                 title = 'IA Explicable';
                 content = renderExplainableAI();
@@ -1677,7 +2227,7 @@ function setActiveSection(sectionId) {
     document.querySelectorAll('.nav-item').forEach(nav => {
         nav.classList.remove('active');
     });
-    
+
     const targetNav = document.querySelector(`.nav-item a[data-target="${sectionId}"]`);
     if (targetNav) {
         targetNav.parentElement.classList.add('active');
@@ -1685,6 +2235,15 @@ function setActiveSection(sectionId) {
 
     currentSection = sectionId;
     renderContent(sectionId);
+}
+
+function goBackFromAnalysis() {
+    const prev = sessionStorage.getItem('analysis_previous_section');
+    if (prev && prev !== 'analysis') {
+        setActiveSection(prev);
+    } else {
+        setActiveSection('all-xrays'); // Default fallback
+    }
 }
 
 // ============================
@@ -1701,15 +2260,17 @@ function renderDiseases() {
             <div id="diseases-list"></div>
         </div>
     `;
-    
+
     setTimeout(async () => {
         const listDiv = document.getElementById('diseases-list');
+        if (!listDiv) return;
+
         listDiv.innerHTML = '<p>Cargando enfermedades...</p>';
-        
+
         try {
             const response = await fetch('/api/diseases');
             const diseases = await response.json();
-            
+
             if (diseases.length === 0) {
                 listDiv.innerHTML = `
                     <p style="text-align:center; color: var(--text-secondary); padding: 2rem;">
@@ -1719,7 +2280,7 @@ function renderDiseases() {
                 `;
                 return;
             }
-            
+
             const rows = diseases.map(d => `
                 <tr>
                     <td>${d.id}</td>
@@ -1728,7 +2289,7 @@ function renderDiseases() {
                     <td>${new Date(d.created_at).toLocaleDateString()}</td>
                 </tr>
             `).join('');
-            
+
             listDiv.innerHTML = `
                 <div class="table-container">
                     <table>
@@ -1746,312 +2307,251 @@ function renderDiseases() {
                     </table>
                 </div>
             `;
-            
+
         } catch (error) {
             console.error(error);
             listDiv.innerHTML = '<p style="color: var(--danger-color);">Error al cargar enfermedades</p>';
         }
     }, 100);
-    
+
+    return content;
+}
+
+// 📌 DASHBOARD
+function renderDashboard() {
+    const content = `
+        <div class="grid-2" style="margin-bottom: 2rem;">
+            <div class="card">
+                <h3><i class="fa-solid fa-users"></i> Pacientes por Género</h3>
+                <canvas id="chartGender"></canvas>
+            </div>
+            <div class="card">
+                <h3><i class="fa-solid fa-check-circle"></i> Exactitud del Modelo</h3>
+                <canvas id="chartAccuracy"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h3><i class="fa-solid fa-disease"></i> Distribución de Enfermedades Detectadas</h3>
+            <canvas id="chartDiseases"></canvas>
+        </div>
+    `;
+
+    setTimeout(async () => {
+        try {
+            const [patients, predictions, diseases] = await Promise.all([
+                fetch('/api/patients').then(r => r.json()),
+                fetch('/api/predictions/all').then(r => r.json()),
+                fetch('/api/diseases').then(r => r.json())
+            ]);
+
+            // 1. Gender Chart
+            const male = patients.filter(p => p.gender === 'M').length;
+            const female = patients.filter(p => p.gender === 'F').length;
+
+            if (document.getElementById('chartGender')) {
+                new Chart(document.getElementById('chartGender'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Masculino', 'Femenino'],
+                        datasets: [{
+                            data: [male, female],
+                            backgroundColor: ['#3b82f6', '#ec4899']
+                        }]
+                    }
+                });
+            }
+
+            // 2. Accuracy Chart
+            const correct = predictions.filter(p => p.is_correct === true).length;
+            const incorrect = predictions.filter(p => p.is_correct === false).length;
+            const pending = predictions.filter(p => p.is_correct === null).length;
+
+            if (document.getElementById('chartAccuracy')) {
+                new Chart(document.getElementById('chartAccuracy'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Correcto', 'Incorrecto', 'Pendiente Validación'],
+                        datasets: [{
+                            data: [correct, incorrect, pending],
+                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
+                        }]
+                    }
+                });
+            }
+
+            // 3. Diseases Distribution
+            const diseaseCounts = {};
+            predictions.forEach(p => {
+                const name = p.corrected_disease_name || p.disease_name;
+                diseaseCounts[name] = (diseaseCounts[name] || 0) + 1;
+            });
+
+            if (document.getElementById('chartDiseases')) {
+                new Chart(document.getElementById('chartDiseases'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(diseaseCounts),
+                        datasets: [{
+                            label: 'Casos Detectados',
+                            data: Object.values(diseaseCounts),
+                            backgroundColor: '#8b5cf6'
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+            const area = document.getElementById('content-area');
+            if (area) area.innerHTML += '<p style="color:red">Error cargando gráficos</p>';
+        }
+    }, 100);
+
     return content;
 }
 
 function renderExplainableAI() {
-    const content = `
-        <div class="card">
-            <h2><i class="fa-solid fa-brain"></i> Inteligencia Artificial Explicable</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem;">
-                Comprende cómo funciona el sistema de diagnóstico por IA
-            </p>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                <div class="info-card" style="padding: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 0.75rem;">
-                    <i class="fa-solid fa-brain" style="font-size: 2.5rem; margin-bottom: 1rem; display: block;"></i>
-                    <h3 style="margin-bottom: 0.75rem; color: white;">Red Neuronal Convolucional</h3>
-                    <p style="opacity: 0.9; font-size: 0.9rem; margin: 0;">
-                        Utilizamos una CNN entrenada específicamente en radiografías de tórax para detectar patologías pulmonares con alta precisión.
-                    </p>
-                </div>
-                
-                <div class="info-card" style="padding: 1.5rem; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border-radius: 0.75rem;">
-                    <i class="fa-solid fa-fire" style="font-size: 2.5rem; margin-bottom: 1rem; display: block;"></i>
-                    <h3 style="margin-bottom: 0.75rem; color: white;">Grad-CAM</h3>
-                    <p style="opacity: 0.9; font-size: 0.9rem; margin: 0;">
-                        Gradient-weighted Class Activation Mapping muestra las áreas de la imagen que más influyen en la decisión del modelo.
-                    </p>
-                </div>
-                
-                <div class="info-card" style="padding: 1.5rem; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 0.75rem;">
-                    <i class="fa-solid fa-user-md" style="font-size: 2.5rem; margin-bottom: 1rem; display: block;"></i>
-                    <h3 style="margin-bottom: 0.75rem; color: white;">Validación Médica</h3>
-                    <p style="opacity: 0.9; font-size: 0.9rem; margin: 0;">
-                        Todos los diagnósticos son revisados por profesionales médicos, mejorando continuamente la precisión del sistema.
-                    </p>
-                </div>
+    const modules = [
+        {
+            title: "¿Qué es una CNN?",
+            icon: "fa-brain",
+            description: "Una Red Neuronal Convolucional (CNN) es un tipo de IA diseñada para analizar imágenes.",
+            details: [
+                "Funciona <strong>aprendiendo patrones</strong> como líneas y formas.",
+                "Es como si 'mirara' la imagen varias veces para entenderla.",
+                "Analiza desde detalles simples hasta estructuras complejas."
+            ]
+        },
+        {
+            title: "¿Qué modelo usé?",
+            icon: "fa-layer-group",
+            description: "Usé <strong>DenseNet-121</strong>, un modelo pre-entrenado en millones de imágenes.",
+            details: [
+                "<strong>Aprende muy bien</strong> patrones visuales complejos.",
+                "<strong>Eficiente:</strong> No necesita demasiados datos.",
+                "<strong>Estándar:</strong> Muy usado en radiología médica.",
+                "Adaptado para detectar 5 enfermedades pulmonares específicas."
+            ]
+        },
+        {
+            title: "¿Qué hace con la imagen?",
+            icon: "fa-microscope",
+            description: "Proceso paso a paso desde que recibe la radiografía:",
+            details: [
+                "1. <strong>Ajusta y normaliza</strong> la imagen.",
+                "2. Busca <strong>bordes y sombras</strong> básicos.",
+                "3. Combina detalles para hallar <strong>nódulos u opacidades</strong>.",
+                "4. Decide qué enfermedades están presentes (pueden ser varias)."
+            ]
+        },
+        {
+            title: "¿Qué detecta?",
+            icon: "fa-lungs-virus",
+            description: "El modelo aprende a detectar independientemente:",
+            details: [
+                "<span class='ai-highlight'>Atelectasis</span> (Colapso pulmonar)",
+                "<span class='ai-highlight'>Effusion</span> (Derrame pleural)",
+                "<span class='ai-highlight'>Infiltration</span> (Infiltración)",
+                "<span class='ai-highlight'>Cardiomegaly</span> (Corazón agrandado)",
+                "<span class='ai-highlight'>Nodule</span> (Pequeñas masas)"
+            ]
+        },
+        {
+            title: "¿Cómo aprende?",
+            icon: "fa-graduation-cap",
+            description: "El aprendizaje se basa en la comparación constante:",
+            details: [
+                "Compara su <strong>predicción</strong> vs la <strong>realidad</strong>.",
+                "Si se equivoca, <strong>ajusta sus parámetros</strong>.",
+                "Repite esto miles de veces (epochs) hasta mejorar.",
+                "Es un proceso de prueba y error matemático masivo."
+            ]
+        },
+        {
+            title: "Transformación de Imágenes",
+            icon: "fa-image",
+            description: "Antes de entrar al modelo, la imagen se prepara:",
+            details: [
+                "Redimensión a <strong>224x224 píxeles</strong>.",
+                "Pequeños giros aleatorios para variar los datos.",
+                "Conversión a <strong>tensores</strong> (números).",
+                "<strong>Normalización</strong> para estandarizar los valores."
+            ]
+        },
+        {
+            title: "¿Por qué multietiqueta?",
+            icon: "fa-list-check",
+            description: "La realidad médica no es binaria.",
+            details: [
+                "Un paciente puede tener <strong>varias patologías</strong> a la vez.",
+                "O podría no tener ninguna (sano).",
+                "El modelo tiene <strong>5 salidas independientes</strong>.",
+                "Cada salida es una respuesta de 'Sí/No'."
+            ]
+        },
+        {
+            title: "¿Cómo se evaluó?",
+            icon: "fa-chart-line",
+            description: "Métricas clave usadas durante el entrenamiento:",
+            details: [
+                "<strong>Loss de validación:</strong> Mide qué tan bien aprende.",
+                "<strong>Predicciones Sigmoid:</strong> Probabilidades 0-1.",
+                "<strong>F1 Macro:</strong> Equilibrio entre precisión y recall.",
+                "Mientras más alto el F1, mejor rendimiento general."
+            ]
+        },
+        {
+            title: "Métricas de Validación",
+            icon: "fa-clipboard-check",
+            description: "Indicadores clínicos de rendimiento:",
+            details: [
+                "<strong>AUC-ROC:</strong> Capacidad de distinguir enfermos de sanos.",
+                "<strong>Sensibilidad:</strong> Qué tan bueno es detectando positivos.",
+                "<strong>Especificidad:</strong> Qué tan bueno es descartando negativos.",
+                "<strong>Matriz de Confusión:</strong> Visualización de aciertos vs errores."
+            ]
+        }
+    ];
+
+    const cardsHtml = modules.map((mod, index) => `
+        <div class="ai-module-card" style="animation: fadeInUp 0.5s ease-out ${index * 0.1}s backwards;">
+            <div class="ai-module-header">
+                <h3><i class="fa-solid ${mod.icon}"></i> ${mod.title}</h3>
             </div>
-            
-            <div style="background: #f8fafc; padding: 2rem; border-radius: 0.75rem; border-left: 4px solid var(--primary-color);">
-                <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-lightbulb"></i> ¿Cómo interpretar los mapas de calor?</h3>
-                <ul style="line-height: 1.8; color: var(--text-secondary);">
-                    <li><strong style="color: #ef4444;">Rojo intenso:</strong> Áreas que la IA considera más relevantes para el diagnóstico</li>
-                    <li><strong style="color: #f59e0b;">Amarillo/Naranja:</strong> Zonas de importancia moderada</li>
-                    <li><strong style="color: #3b82f6;">Azul:</strong> Áreas que no influyen significativamente en la decisión</li>
+            <div class="ai-module-content">
+                <p>${mod.description}</p>
+                <ul>
+                    ${mod.details.map(detail => `<li>${detail}</li>`).join('')}
                 </ul>
-                <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                    💡 <strong>Importante:</strong> Los mapas de calor son una herramienta de apoyo. El diagnóstico final siempre debe ser realizado por un profesional médico.
-                </p>
             </div>
         </div>
+    `).join('');
+
+    return `
+        <div class="ai-intro">
+            <h2>Cómo funciona esta IA</h2>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">
+                Una guía interactiva para entender la tecnología detrás del diagnóstico automatizado.
+            </p>
+        </div>
+        <div class="ai-modules-grid">
+            ${cardsHtml}
+        </div>
+        <style>
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        </style>
     `;
-    
-    return content;
 }
 
 function attachDynamicListeners() {
     // Placeholder para listeners dinámicos si son necesarios
     console.log('✅ Dynamic listeners attached');
 }
-=======
-function renderDiseases() {
-    const cards = diseases.map(d => {
-        let icon = 'fa-minus';
-        let color = 'text-secondary';
-        if (d.trend === 'up') { icon = 'fa-arrow-up'; color = 'danger-color'; }
-        if (d.trend === 'down') { icon = 'fa-arrow-down'; color = 'success-color'; }
-
-        return `
-            <div class="card">
-                <h3>${d.name}</h3>
-                <div style="font-size: 2rem; font-weight: 700; margin: 1rem 0;">${d.cases}</div>
-                <div style="color: var(--text-secondary);">
-                    <i class="fa-solid ${icon}" style="color: var(--${color})"></i> Casos activos
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    return `
-        <div class="grid-2">
-            ${cards}
-        </div>
-        <div class="card" style="margin-top: 1.5rem;">
-            <h3>Evolución Mensual</h3>
-            <div style="height: 300px; background: #f8fafc; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem; margin-top: 1rem;">
-                <p style="color: var(--text-secondary);">Gráfico de evolución (Placeholder)</p>
-            </div>
-        </div>
-    `;
-}
-
-function renderExplainableAI() {
-    return `
-        <div class="card">
-            <h2>¿Cómo funciona la CNN?</h2>
-            <p style="margin-top: 1rem; line-height: 1.6;">
-                Las Redes Neuronales Convolucionales (CNN) son un tipo de Inteligencia Artificial diseñada para procesar datos con estructura de rejilla, como las imágenes.
-                Funcionan imitando la forma en que el cerebro humano procesa la visión.
-            </p>
-            
-            <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 2rem;">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 60px; height: 60px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary-color); font-size: 1.5rem;">1</div>
-                    <div>
-                        <h4>Entrada</h4>
-                        <p>La radiografía se introduce en el sistema como una matriz de píxeles.</p>
-                    </div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 60px; height: 60px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary-color); font-size: 1.5rem;">2</div>
-                    <div>
-                        <h4>Extracción de Características</h4>
-                        <p>La red aplica filtros para detectar bordes, texturas y patrones específicos de enfermedades.</p>
-                    </div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 60px; height: 60px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary-color); font-size: 1.5rem;">3</div>
-                    <div>
-                        <h4>Clasificación</h4>
-                        <p>Las capas finales deciden qué enfermedad es más probable basándose en las características encontradas.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function renderApplyCNN() {
-    return `
-        <div class="grid-2">
-            <div class="card">
-                <h3>Subir Radiografía</h3>
-                <div class="upload-area" id="upload-dropzone">
-                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                    <p>Arrastra tu imagen aquí o haz clic para seleccionar</p>
-                    <input type="file" id="file-input" hidden accept="image/*">
-                </div>
-                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="analyze-btn">Analizar Imagen</button>
-            </div>
-            
-            <div class="card" id="results-panel" style="display: none;">
-                <h3>Resultados del Análisis</h3>
-                <div style="margin-top: 1rem; text-align: center;">
-                    <img src="https://via.placeholder.com/300x300?text=X-Ray+Preview" alt="Preview" style="max-width: 100%; border-radius: 0.5rem; margin-bottom: 1rem;">
-                    
-                    <div style="text-align: left;">
-                        <div style="margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span>Neumonía</span>
-                                <span style="font-weight: 700;">92%</span>
-                            </div>
-                            <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                                <div style="height: 100%; width: 92%; background: var(--danger-color);"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span>Normal</span>
-                                <span style="font-weight: 700;">8%</span>
-                            </div>
-                            <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                                <div style="height: 100%; width: 8%; background: var(--success-color);"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function renderGradCAM() {
-    return `
-        <div class="card">
-            <h3>Visualización Grad-CAM</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-                El mapa de calor muestra las regiones de la imagen que más influyeron en la decisión del modelo.
-            </p>
-            
-            <div class="grid-2">
-                <div>
-                    <h4 style="margin-bottom: 1rem;">Original</h4>
-                    <img src="https://via.placeholder.com/400x400?text=Original+X-Ray" style="width: 100%; border-radius: 0.5rem;">
-                </div>
-                <div>
-                    <h4 style="margin-bottom: 1rem;">Mapa de Activación</h4>
-                    <div style="position: relative;">
-                        <img src="https://via.placeholder.com/400x400?text=Original+X-Ray" style="width: 100%; border-radius: 0.5rem;">
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,0,0,0.5) 0%, rgba(0,0,0,0) 70%); border-radius: 0.5rem;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function renderValidation() {
-    return `
-        <div class="card">
-            <h3>Validación de Diagnóstico</h3>
-            <div class="grid-2" style="margin-top: 1.5rem;">
-                <div>
-                    <img src="https://via.placeholder.com/400x400?text=X-Ray+Case+123" style="width: 100%; border-radius: 0.5rem;">
-                </div>
-                <div>
-                    <div style="background: #eff6ff; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                        <h4 style="color: var(--primary-color);">Predicción del Modelo</h4>
-                        <p style="font-size: 1.25rem; font-weight: 700; margin-top: 0.5rem;">Neumonía (92%)</p>
-                    </div>
-                    
-                    <form>
-                        <div class="form-group">
-                            <label class="form-label">¿Es correcto el diagnóstico?</label>
-                            <div style="display: flex; gap: 1rem;">
-                                <button type="button" class="btn btn-primary" style="flex: 1; background-color: var(--success-color);">
-                                    <i class="fa-solid fa-check"></i> Correcto
-                                </button>
-                                <button type="button" class="btn btn-primary" style="flex: 1; background-color: var(--danger-color);">
-                                    <i class="fa-solid fa-times"></i> Incorrecto
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Notas del Doctor</label>
-                            <textarea class="form-control" rows="4" placeholder="Añada sus observaciones..."></textarea>
-                        </div>
-                        
-                        <button type="button" class="btn btn-primary" style="width: 100%;">Guardar Validación</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function renderViewByDisease() {
-    return `
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h3>Filtrar por Enfermedad</h3>
-                <select class="form-control" style="width: 200px;">
-                    <option>Todas</option>
-                    <option>Neumonía</option>
-                    <option>Tuberculosis</option>
-                    <option>COVID-19</option>
-                </select>
-            </div>
-            
-            <div class="grid-3">
-                ${[1, 2, 3, 4, 5, 6].map(i => `
-                    <div style="border: 1px solid var(--border-color); border-radius: 0.5rem; overflow: hidden;">
-                        <img src="https://via.placeholder.com/300x200?text=Case+${i}" style="width: 100%; height: 150px; object-fit: cover;">
-                        <div style="padding: 1rem;">
-                            <h4 style="margin-bottom: 0.5rem;">Caso #${202300 + i}</h4>
-                            <span class="badge badge-danger">Neumonía</span>
-                            <button class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">Ver Detalles</button>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-}
-
-function attachDynamicListeners() {
-    // Listeners for Apply CNN section
-    const uploadArea = document.getElementById('upload-dropzone');
-    const fileInput = document.getElementById('file-input');
-    const analyzeBtn = document.getElementById('analyze-btn');
-    const resultsPanel = document.getElementById('results-panel');
-
-    if (uploadArea) {
-        uploadArea.addEventListener('click', () => fileInput.click());
-        
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                uploadArea.innerHTML = `<p>Archivo seleccionado: <strong>${e.target.files[0].name}</strong></p>`;
-            }
-        });
-    }
-
-    if (analyzeBtn) {
-        analyzeBtn.addEventListener('click', () => {
-            analyzeBtn.textContent = 'Analizando...';
-            analyzeBtn.disabled = true;
-            
-            setTimeout(() => {
-                analyzeBtn.textContent = 'Analizar Imagen';
-                analyzeBtn.disabled = false;
-                resultsPanel.style.display = 'block';
-                resultsPanel.scrollIntoView({ behavior: 'smooth' });
-            }, 1500);
-        });
-    }
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    initNavigation();
-    renderContent('patients'); // Initial load
-});
->>>>>>> 7ae2c0461985f72d157a7a2321cd5c4f4b5f7577
