@@ -11,7 +11,14 @@ except ImportError:
 
 from PIL import Image
 import numpy as np
-import cv2
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+    print("⚠️  WARNING: OpenCV not installed. Some ML features may be limited.")
+
 import io
 import sys
 import hashlib
@@ -208,15 +215,16 @@ def get_gradcam_and_bbox(model, input_tensor, target_class_idx=None, is_multi_la
             cam = (cam - mn) / (mx - mn)
         
         # Bbox calculation
-        heatmap_thresh = np.uint8(255 * cam)
-        _, binary_map = cv2.threshold(heatmap_thresh, 200, 255, cv2.THRESH_BINARY)
-        contours, _ = cv2.findContours(binary_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
         bbox = None
-        if contours:
-            largest_contour = max(contours, key=cv2.contourArea)
-            x, y, w, h = cv2.boundingRect(largest_contour)
-            bbox = {"x": int(x), "y": int(y), "width": int(w), "height": int(h)}
+        if CV2_AVAILABLE:
+            heatmap_thresh = np.uint8(255 * cam)
+            _, binary_map = cv2.threshold(heatmap_thresh, 200, 255, cv2.THRESH_BINARY)
+            contours, _ = cv2.findContours(binary_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            
+            if contours:
+                largest_contour = max(contours, key=cv2.contourArea)
+                x, y, w, h = cv2.boundingRect(largest_contour)
+                bbox = {"x": int(x), "y": int(y), "width": int(w), "height": int(h)}
 
         # Clear memory
         del grads, acts, weights, output
@@ -231,6 +239,10 @@ def get_gradcam_and_bbox(model, input_tensor, target_class_idx=None, is_multi_la
         hook_g.remove()
 
 def create_overlay(original_img_pil, cam):
+    if not CV2_AVAILABLE:
+        # Return empty bytes if CV2 not available
+        return b''
+    
     img_cv = cv2.cvtColor(np.array(original_img_pil.resize((224,224))), cv2.COLOR_RGB2BGR)
     heatmap = cv2.applyColorMap(np.uint8(255 * cam), cv2.COLORMAP_JET)
     superimposed_img = cv2.addWeighted(img_cv, 0.6, heatmap, 0.4, 0)
@@ -328,6 +340,9 @@ def process_single_label_analysis(image_bytes, disease_type):
 
 def get_bounding_box_from_image_path(image_path):
     """Legacy helper for calculating bbox from saved gradcam image."""
+    if not CV2_AVAILABLE:
+        return None
+    
     try:
         img = cv2.imread(str(image_path))
         if img is None: return None
