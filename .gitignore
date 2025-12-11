@@ -1,22 +1,76 @@
-# Entornos virtuales
-venv/
-
-# Archivos temporales de Python
+# Python
 __pycache__/
-*.pyc
-*.pyo
-
-# Archivos grandes de librerías/binaries
-*.dll
-*.exe
+*.py[cod]
+*$py.class
 *.so
-*.pyd
+.Python
 
-# Archivos del sistema
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# OS Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Carpeta de datos procesados o imágenes si no quieres subirlas
+# Project specific
+Uploads/
+*.db
+*.sqlite
+*.sqlite3
+
+# Model files (optional - uncomment if models are too large)
+# *.h5
+# *.pth
+# *.pt
+# *.ckpt
+
+# Data directories (optional - uncomment if data is too large)
 # data/
 # imagenes_procesadas/
-Uploads/
+# dataset/
+
+# Logs
+*.log
+logs/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
