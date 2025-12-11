@@ -978,15 +978,11 @@ async function loadXrayDetailData(xrayId) {
                             <i class="fa-solid fa-gear"></i> Acciones
                         </h4>
                         
-                        ${xray.has_prediction ? `
-                            <button class="btn btn-primary" onclick="viewXrayAnalysis(${xray.id})" style="width: 100%; margin-bottom: 1rem;">
-                                <i class="fa-solid fa-chart-line"></i> Ver Análisis Completo
-                            </button>
-                        ` : `
+                        ${!xray.has_prediction ? `
                             <button class="btn btn-primary" onclick="processXray(${xray.id})" style="width: 100%; margin-bottom: 1rem;">
                                 <i class="fa-solid fa-brain"></i> Procesar con CNN
                             </button>
-                        `}
+                        ` : ''}
                         
                         <button class="btn btn-outline" onclick="deleteXrayFromDetail(${xray.id})" style="width: 100%; background: #fee2e2; color: #dc2626; border-color: #fecaca;">
                             <i class="fa-solid fa-trash"></i> Eliminar Radiografía
