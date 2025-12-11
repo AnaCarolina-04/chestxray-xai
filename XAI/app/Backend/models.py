@@ -53,7 +53,7 @@ class Xray(db.Model):
     __tablename__ = "xrays"
     
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id", ondelete="CASCADE"), nullable=False)
     image_path = db.Column(db.String(255), nullable=False)
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -71,7 +71,7 @@ class GradCam(db.Model):
     __tablename__ = "gradcam_images"
     
     id = db.Column(db.Integer, primary_key=True)
-    xray_id = db.Column(db.Integer, db.ForeignKey("xrays.id"), nullable=False)
+    xray_id = db.Column(db.Integer, db.ForeignKey("xrays.id", ondelete="CASCADE"), nullable=False)
     image_path = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -86,16 +86,16 @@ class Prediction(db.Model):
     __tablename__ = 'predictions'
     
     id = db.Column(db.Integer, primary_key=True)
-    xray_id = db.Column(db.Integer, db.ForeignKey('xrays.id'), nullable=False)
-    disease_id = db.Column(db.Integer, db.ForeignKey('diseases.id'), nullable=False)
-    gradcam_id = db.Column(db.Integer, db.ForeignKey('gradcam_images.id'))
+    xray_id = db.Column(db.Integer, db.ForeignKey('xrays.id', ondelete='CASCADE'), nullable=False)
+    disease_id = db.Column(db.Integer, db.ForeignKey('diseases.id', ondelete='RESTRICT'), nullable=False)
+    gradcam_id = db.Column(db.Integer, db.ForeignKey('gradcam_images.id', ondelete='SET NULL'))
     confidence = db.Column(db.Float)
     predicted_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Campos de validación
     validated = db.Column(db.Boolean, default=False)
     is_correct = db.Column(db.Boolean, nullable=True)
-    corrected_disease_id = db.Column(db.Integer, db.ForeignKey('diseases.id'), nullable=True)
+    corrected_disease_id = db.Column(db.Integer, db.ForeignKey('diseases.id', ondelete='SET NULL'), nullable=True)
     doctor_notes = db.Column(db.Text, nullable=True)
     
     # Relaciones
@@ -112,9 +112,9 @@ class Diagnosis(db.Model):
     __tablename__ = "diagnoses"
     
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
-    xray_id = db.Column(db.Integer, db.ForeignKey("xrays.id"))
-    disease_id = db.Column(db.Integer, db.ForeignKey("diseases.id"), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id", ondelete="CASCADE"), nullable=False)
+    xray_id = db.Column(db.Integer, db.ForeignKey("xrays.id", ondelete="SET NULL"))
+    disease_id = db.Column(db.Integer, db.ForeignKey("diseases.id", ondelete="RESTRICT"), nullable=False)
     notes = db.Column(db.Text)
     diagnosed_at = db.Column(db.DateTime, default=datetime.utcnow)
     
