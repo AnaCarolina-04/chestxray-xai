@@ -1499,7 +1499,7 @@ function toggleBoundingBox() {
         const box = document.createElement('div');
         box.id = 'bbox-overlay';
         box.style.position = 'absolute';
-        box.style.border = '3px solid #ef4444'; // Red
+        box.style.border = '3px solid #3b82f6'; // Blue
         box.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
         box.style.zIndex = '10';
         box.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
@@ -1573,11 +1573,11 @@ function renderAnalysis() {
                 <h2><i class="fa-solid fa-microscope"></i> Análisis Completo de Radiografía</h2>
                 <div style="display: flex; gap: 1rem; align-items: center;">
                     ${isValidated ? `
-                        <span style="padding: 0.5rem 1rem; background: #10b98120; color: #10b981; border-radius: 0.5rem; font-weight: 600;">
+                        <span style="padding: 0.5rem 1rem; background: #dbeafe; color: #2563eb; border-radius: 0.5rem; font-weight: 600;">
                             <i class="fa-solid fa-check-circle"></i> Validado
                         </span>
                     ` : `
-                        <span style="padding: 0.5rem 1rem; background: #f59e0b20; color: #f59e0b; border-radius: 0.5rem; font-weight: 600;">
+                        <span style="padding: 0.5rem 1rem; background: #dbeafe; color: #60a5fa; border-radius: 0.5rem; font-weight: 600;">
                             <i class="fa-solid fa-clock"></i> Pendiente de Validar
                         </span>
                     `}
@@ -1801,11 +1801,11 @@ function renderAnalysis() {
                     </form>
                 </div>
             ` : `
-                <div style="background: #10b98120; padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #10b981;">
+                <div style="background: #dbeafe; padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #3b82f6;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
-                        <i class="fa-solid fa-check-circle" style="font-size: 2rem; color: #10b981;"></i>
+                        <i class="fa-solid fa-check-circle" style="font-size: 2rem; color: #3b82f6;"></i>
                         <div>
-                            <h4 style="margin: 0 0 0.25rem 0; color: #10b981;">Diagnóstico Validado</h4>
+                            <h4 style="margin: 0 0 0.25rem 0; color: #2563eb;">Diagnóstico Validado</h4>
                             <p style="margin: 0; color: var(--text-secondary); font-size: 0.875rem;">
                                 Este caso ya ha sido revisado y validado por un médico.
                             </p>
@@ -2335,7 +2335,7 @@ async function analyzeSpecificDisease(xrayId, diseaseType) {
 
         // Render Result - Cambio de probabilidad a Positivo/Negativo
         const isPositive = data.probability > 0.5;
-        const color = isPositive ? '#ef4444' : '#10b981';
+        const color = isPositive ? '#2563eb' : '#60a5fa';
         const label = isPositive ? 'POSITIVO' : 'NEGATIVO';
         const icon = isPositive ? 'fa-circle-exclamation' : 'fa-circle-check';
 
