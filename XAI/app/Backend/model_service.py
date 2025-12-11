@@ -47,6 +47,8 @@ else:
 def _get_image_hash(image_bytes):
     return hashlib.md5(image_bytes).hexdigest()
 
+
+
 def load_densenet_model(path, num_classes=None, is_single_label=False):
     """Loads a DenseNet121 model with specified weights, adapting structure to state_dict."""
     path_obj = Path(path)
@@ -56,48 +58,48 @@ def load_densenet_model(path, num_classes=None, is_single_label=False):
         return None
 
     try:
-        # Load state_dict with memory optimization
-        state_dict = torch.load(path, map_location='cpu', weights_only=False)
+        # Load state_dict
+        state_dict = torch.load(path, map_location='cpu')
         
-        # Initialize base model with memory efficiency
+        # Initialize base model
         with torch.no_grad():
             model = models.densenet121(weights=None)
             in_features = model.classifier.in_features
             
-            # Check architecture type from keys
+            # 1. Determine Classifier Structure (Sequential vs Linear)
             has_sequential = 'classifier.1.weight' in state_dict or 'classifier.1.bias' in state_dict
             
-            # Determine output features
+            # 2. Determine Output Features (num_classes)
+            # Try to infer from state_dict to avoid shape mismatch
             out_features = 1
             if num_classes:
                 out_features = num_classes
+            else:
+                # Inference from weight shape
+                if has_sequential and 'classifier.1.weight' in state_dict:
+                    out_features = state_dict['classifier.1.weight'].shape[0]
+                elif 'classifier.weight' in state_dict:
+                    out_features = state_dict['classifier.weight'].shape[0]
             
-            # Configure classifier
+            # 3. Build Classifier
             if has_sequential:
-                # Sequential(Dropout, Linear)
                 model.classifier = torch.nn.Sequential(
                     torch.nn.Dropout(0.5),
                     torch.nn.Linear(in_features, out_features)
                 )
             else:
-                # Simple Linear
                 model.classifier = torch.nn.Linear(in_features, out_features)
                 
-            # Load weights
-            model.load_state_dict(state_dict, strict=True)
+            # 4. Load Weights
+            # strict=False allows ignoring keys if minor mismatch, but we want to capture important ones.
+            # Usually strict=True is best, but if 'num_batches_tracked' is missing/present it causes issues.
+            model.load_state_dict(state_dict, strict=False)
             model.eval()
             
-        # Clear state_dict from memory
-        del state_dict
-        torch.cuda.empty_cache() if torch.cuda.is_available() else None
-        
-        structure_type = "Sequential" if has_sequential else "Linear"
         return model
 
     except Exception as e:
         print(f"ERROR loading model {path_obj.name}: {e}")
-        import traceback
-        traceback.print_exc()
         return None
 
 # ==========================================

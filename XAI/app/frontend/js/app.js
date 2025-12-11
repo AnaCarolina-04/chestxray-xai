@@ -3177,3 +3177,193 @@ function attachDynamicListeners() {
     // Placeholder para listeners dinámicos si son necesarios
     console.log('✅ Dynamic listeners attached');
 }
+
+// ===============================
+//     GESTIÓN DE ENFERMEDADES
+// ===============================
+
+function renderDiseases() {
+    const content = `
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2><i class="fa-solid fa-virus"></i> Gestión de Enfermedades</h2>
+                <button class="btn btn-primary" onclick="openDiseaseModal()">
+                    <i class="fa-solid fa-plus"></i> Nueva Enfermedad
+                </button>
+            </div>
+            <div id="diseases-list">
+                <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Cargando enfermedades...</div>
+            </div>
+        </div>
+
+        <!-- MODAL ENFERMEDAD -->
+        <div id="disease-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                <h3 id="modal-title" style="margin-bottom: 1.5rem;">Nueva Enfermedad</h3>
+                <form id="disease-form" onsubmit="saveDisease(event)">
+                    <input type="hidden" id="disease-id">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" id="disease-name" class="form-control" required placeholder="Ej: Neumonía">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descripción</label>
+                        <textarea id="disease-description" class="form-control" rows="3" placeholder="Descripción breve..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                        <button type="button" class="btn btn-outline" onclick="closeDiseaseModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- MODAL CONFIRMACION ELIMINAR -->
+        <div id="delete-disease-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); text-align: center;">
+                <div style="width: 60px; height: 60px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fa-solid fa-trash" style="font-size: 1.5rem; color: #dc2626;"></i>
+                </div>
+                <h3 style="margin-bottom: 0.5rem;">¿Eliminar enfermedad?</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Esta acción no se puede deshacer.</p>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-outline" style="flex: 1;" onclick="closeDeleteDiseaseModal()">Cancelar</button>
+                    <button id="confirm-delete-disease-btn" class="btn" style="flex: 1; background: #dc2626; color: white;" onclick="">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Load data
+    setTimeout(loadDiseasesList, 100);
+
+    return content;
+}
+
+async function loadDiseasesList() {
+    const listDiv = document.getElementById('diseases-list');
+    if (!listDiv) return;
+
+    try {
+        const response = await fetch('/api/diseases');
+        const diseases = await response.json();
+
+        if (diseases.length === 0) {
+            listDiv.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay enfermedades registradas.</p>';
+            return;
+        }
+
+        listDiv.innerHTML = `
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0 0.5rem;">
+                <thead>
+                    <tr style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                        <th style="text-align: left; padding: 1rem;">Nombre</th>
+                        <th style="text-align: left; padding: 1rem;">Descripción</th>
+                        <th style="text-align: right; padding: 1rem;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${diseases.map(d => `
+                        <tr style="background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-radius: 0.5rem;">
+                            <td style="padding: 1rem; border-radius: 0.5rem 0 0 0.5rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div style="width: 32px; height: 32px; background: #f0f9ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary-color);">
+                                        <i class="fa-solid fa-virus"></i>
+                                    </div>
+                                    <strong style="font-weight: 600; color: var(--text-main);">${d.name}</strong>
+                                </div>
+                            </td>
+                            <td style="padding: 1rem; color: var(--text-secondary);">${d.description || '-'}</td>
+                            <td style="padding: 1rem; text-align: right; border-radius: 0 0.5rem 0.5rem 0;">
+                                <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                                    <button class="action-btn edit" onclick="openDiseaseModal('${d.id}', '${d.name}', '${d.description || ''}')" title="Editar">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="action-btn delete" onclick="confirmDeleteDisease('${d.id}')" title="Eliminar">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+    } catch (error) {
+        console.error(error);
+        listDiv.innerHTML = '<p style="color: red; text-align: center;">Error al cargar enfermedades</p>';
+    }
+}
+
+function openDiseaseModal(id = '', name = '', description = '') {
+    const modal = document.getElementById('disease-modal');
+    document.getElementById('modal-title').innerText = id ? 'Editar Enfermedad' : 'Nueva Enfermedad';
+    document.getElementById('disease-id').value = id;
+    document.getElementById('disease-name').value = name;
+    document.getElementById('disease-description').value = description;
+
+    modal.style.display = 'flex';
+}
+
+function closeDiseaseModal() {
+    document.getElementById('disease-modal').style.display = 'none';
+}
+
+async function saveDisease(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('disease-id').value;
+    const name = document.getElementById('disease-name').value;
+    const description = document.getElementById('disease-description').value;
+
+    const endpoint = id ? `/api/diseases/${id}` : '/api/diseases';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+        const response = await fetch(endpoint, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.error || 'Error al guardar');
+
+        showNotification(result.message || 'Guardado exitosamente', 'success');
+        closeDiseaseModal();
+        loadDiseasesList();
+
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+function confirmDeleteDisease(id) {
+    const modal = document.getElementById('delete-disease-modal');
+    const btn = document.getElementById('confirm-delete-disease-btn');
+    btn.onclick = () => executeDeleteDisease(id);
+    modal.style.display = 'flex';
+}
+
+function closeDeleteDiseaseModal() {
+    document.getElementById('delete-disease-modal').style.display = 'none';
+}
+
+async function executeDeleteDisease(id) {
+    try {
+        const response = await fetch(`/api/diseases/${id}`, { method: 'DELETE' });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.error || 'Error al eliminar');
+
+        showNotification('Enfermedad eliminada', 'success');
+        closeDeleteDiseaseModal();
+        loadDiseasesList();
+
+    } catch (error) {
+        showNotification(error.message, 'error');
+        closeDeleteDiseaseModal();
+    }
+}
