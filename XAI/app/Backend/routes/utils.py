@@ -10,6 +10,6 @@ def handle_errors(f):
             return f(*args, **kwargs)
         except Exception as e:
             db.session.rollback()
-            print(f"❌ Error in {f.__name__}: {e}")
+            print(f"Error in {f.__name__}: {e}")
             return jsonify({"error": str(e)}), 500
     return wrapper

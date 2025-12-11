@@ -51,8 +51,8 @@ if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     
     # Mensaje simple de inicio
-    print("🚀 Servidor iniciado en http://localhost:5000")
-    print("   Presiona CTRL+C para detener\n")
+    print("Servidor iniciado en http://localhost:5000")
+    print("Presiona CTRL+C para detener\n")
     
     # Ejecutar sin debug para evitar mensajes de reinicio
     app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)

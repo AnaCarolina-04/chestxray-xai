@@ -146,7 +146,7 @@ def get_single_label_model(disease_type):
             _models_map[disease_type] = model
             return model
     
-    print(f"❌ Failed to load model for {disease_type}")
+    print(f"Failed to load model for {disease_type}")
     _models_map[disease_type] = None
     return None
 

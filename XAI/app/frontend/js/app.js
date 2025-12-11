@@ -834,7 +834,7 @@ function filterXraysByPatient(patientId) {
 function viewXrayDetail(xrayId) {
     sessionStorage.setItem('current_xray_id', xrayId);
     sessionStorage.setItem('analysis_previous_section', currentSection);
-    setActiveSection('analysis');
+    setActiveSection('xray-detail');
 }
 
 // ============================
@@ -2195,6 +2195,10 @@ function renderContent(sectionId) {
             case 'analysis':
                 title = 'Análisis de Radiografía';
                 content = renderAnalysis();
+                break;
+            case 'xray-detail':
+                title = 'Detalles de Radiografía';
+                content = renderXrayDetail();
                 break;
             case 'diagnoses':
                 title = 'Gestión de Diagnósticos';
