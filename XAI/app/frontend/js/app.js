@@ -838,6 +838,317 @@ function viewXrayDetail(xrayId) {
 }
 
 // ============================
+//    SECCIÓN: DETALLES DE RADIOGRAFÍA
+// ============================
+
+function renderXrayDetail() {
+    const xrayId = sessionStorage.getItem('current_xray_id');
+
+    if (!xrayId) {
+        return `
+            <div class="card">
+                <p style="color: var(--danger-color);">No se especificó una radiografía para ver.</p>
+                <button class="btn btn-primary" onclick="setActiveSection('all-xrays')">
+                    <i class="fa-solid fa-arrow-left"></i> Volver a Radiografías
+                </button>
+            </div>
+        `;
+    }
+
+    const content = `
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <button class="btn btn-outline" onclick="goBackFromXrayDetail()">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+                <h2><i class="fa-solid fa-file-medical"></i> Detalles de Radiografía</h2>
+                <div></div>
+            </div>
+
+            <div id="xray-detail-content">
+                <div style="text-align: center; padding: 2rem;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    <p style="margin-top: 1rem; color: var(--text-secondary);">Cargando información...</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    setTimeout(async () => {
+        await loadXrayDetailData(xrayId);
+    }, 100);
+
+    return content;
+}
+
+async function loadXrayDetailData(xrayId) {
+    const container = document.getElementById('xray-detail-content');
+
+    try {
+        const response = await fetch(`/api/xrays/${xrayId}`);
+        if (!response.ok) throw new Error('Error al cargar la radiografía');
+
+        const xray = await response.json();
+
+        container.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <h3 style="margin-bottom: 1rem;">
+                        <i class="fa-solid fa-image"></i> Imagen de Radiografía
+                    </h3>
+                    <div style="border: 2px solid var(--border-color); border-radius: 0.75rem; overflow: hidden; background: #f9fafb;">
+                        <img 
+                            src="/api/xrays/${xray.id}/image" 
+                            alt="Radiografía" 
+                            style="width: 100%; height: auto; display: block;"
+                            onerror="this.style.background='#fee2e2'; this.alt='Error al cargar imagen';"
+                        >
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; padding: 1.5rem; background: #f9fafb; border-radius: 0.75rem; border: 1px solid var(--border-color);">
+                        <h4 style="margin-bottom: 1rem;">
+                            <i class="fa-solid fa-edit"></i> Reemplazar Imagen
+                        </h4>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
+                            Selecciona un nuevo archivo para reemplazar la radiografía actual.
+                        </p>
+                        <input type="file" id="replace-xray-input" accept="image/*" style="display: none;">
+                        <div id="replace-preview" style="display: none; margin-bottom: 1rem;">
+                            <p style="font-weight: 600; margin-bottom: 0.5rem;">
+                                <i class="fa-solid fa-file-image"></i> Archivo seleccionado:
+                            </p>
+                            <p id="replace-file-name" style="color: var(--primary-color);"></p>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button class="btn btn-outline" onclick="document.getElementById('replace-xray-input').click()" style="flex: 1;">
+                                <i class="fa-solid fa-folder-open"></i> Seleccionar Archivo
+                            </button>
+                            <button id="btn-save-replacement" class="btn btn-primary" onclick="saveReplacedXray(${xray.id})" style="flex: 1;" disabled>
+                                <i class="fa-solid fa-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="margin-bottom: 1rem;">
+                        <i class="fa-solid fa-info-circle"></i> Información
+                    </h3>
+                    
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.875rem; display: block; margin-bottom: 0.25rem;">
+                                <i class="fa-solid fa-hashtag"></i> ID de Radiografía
+                            </label>
+                            <p style="font-size: 1.1rem;">${xray.id}</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.875rem; display: block; margin-bottom: 0.25rem;">
+                                <i class="fa-solid fa-user"></i> Paciente
+                            </label>
+                            <p style="font-size: 1.1rem;">${xray.patient_name}</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.875rem; display: block; margin-bottom: 0.25rem;">
+                                <i class="fa-solid fa-calendar"></i> Fecha de Subida
+                            </label>
+                            <p style="font-size: 1.1rem;">${new Date(xray.upload_date).toLocaleString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })}</p>
+                        </div>
+
+                        ${xray.has_prediction ? `
+                            <div style="margin-bottom: 1rem;">
+                                <label style="font-weight: 600; color: var(--text-secondary); font-size: 0.875rem; display: block; margin-bottom: 0.25rem;">
+                                    <i class="fa-solid fa-stethoscope"></i> Diagnóstico CNN
+                                </label>
+                                <p style="font-size: 1.1rem; color: var(--primary-color); font-weight: 600;">${xray.prediction}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid var(--border-color);">
+                        <h4 style="margin-bottom: 1rem;">
+                            <i class="fa-solid fa-gear"></i> Acciones
+                        </h4>
+                        
+                        ${xray.has_prediction ? `
+                            <button class="btn btn-primary" onclick="viewXrayAnalysis(${xray.id})" style="width: 100%; margin-bottom: 1rem;">
+                                <i class="fa-solid fa-chart-line"></i> Ver Análisis Completo
+                            </button>
+                        ` : `
+                            <button class="btn btn-primary" onclick="processXray(${xray.id})" style="width: 100%; margin-bottom: 1rem;">
+                                <i class="fa-solid fa-brain"></i> Procesar con CNN
+                            </button>
+                        `}
+                        
+                        <button class="btn btn-outline" onclick="deleteXrayFromDetail(${xray.id})" style="width: 100%; background: #fee2e2; color: #dc2626; border-color: #fecaca;">
+                            <i class="fa-solid fa-trash"></i> Eliminar Radiografía
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        setupReplaceXrayListener();
+
+    } catch (error) {
+        console.error('Error loading xray detail:', error);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <p style="color: var(--danger-color); margin-bottom: 1rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Error al cargar los detalles de la radiografía
+                </p>
+                <button class="btn btn-primary" onclick="setActiveSection('all-xrays')">
+                    <i class="fa-solid fa-arrow-left"></i> Volver a Radiografías
+                </button>
+            </div>
+        `;
+    }
+}
+
+function setupReplaceXrayListener() {
+    const fileInput = document.getElementById('replace-xray-input');
+    const preview = document.getElementById('replace-preview');
+    const fileNameDisplay = document.getElementById('replace-file-name');
+    const saveBtn = document.getElementById('btn-save-replacement');
+
+    if (!fileInput) return;
+
+    fileInput.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            fileNameDisplay.textContent = file.name;
+            preview.style.display = 'block';
+            saveBtn.disabled = false;
+            window.replacementXrayFile = file;
+        } else {
+            preview.style.display = 'none';
+            saveBtn.disabled = true;
+            window.replacementXrayFile = null;
+        }
+    });
+}
+
+async function saveReplacedXray(xrayId) {
+    if (!window.replacementXrayFile) {
+        showNotification('Por favor selecciona un archivo primero', 'warning');
+        return;
+    }
+
+    const saveBtn = document.getElementById('btn-save-replacement');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+    try {
+        const formData = new FormData();
+        formData.append('image', window.replacementXrayFile);
+
+        const response = await fetch(`/api/xrays/${xrayId}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        if (!response.ok) throw new Error('Error al actualizar la radiografía');
+
+        showNotification('Radiografía actualizada exitosamente', 'success');
+        await loadXrayDetailData(xrayId);
+        window.replacementXrayFile = null;
+
+    } catch (error) {
+        console.error('Error replacing xray:', error);
+        showNotification(`Error al actualizar: ${error.message}`, 'error');
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> Guardar Cambios';
+    }
+}
+
+async function deleteXrayFromDetail(xrayId) {
+    const modal = document.createElement('div');
+    modal.id = 'delete-xray-modal';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.5); display: flex;
+        justify-content: center; align-items: center; z-index: 10000;
+        animation: fadeIn 0.2s ease-out;
+    `;
+
+    modal.innerHTML = `
+        <div style="background: white; border-radius: 1rem; padding: 2rem; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out;">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="width: 60px; height: 60px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fa-solid fa-trash" style="font-size: 1.5rem; color: #dc2626;"></i>
+                </div>
+                <h3 style="margin: 0 0 0.5rem 0; color: #1f2937;">¿Eliminar radiografía?</h3>
+                <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">
+                    Esta acción no se puede deshacer. La radiografía y todos sus diagnósticos serán eliminados permanentemente.
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem;">
+                <button onclick="closeXrayDeleteModal()" class="btn btn-outline" style="flex: 1;">
+                    <i class="fa-solid fa-times"></i> Cancelar
+                </button>
+                <button onclick="confirmDeleteXray(${xrayId})" class="btn" style="flex: 1; background: #dc2626; color: white;">
+                    <i class="fa-solid fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeXrayDeleteModal();
+    });
+}
+
+function closeXrayDeleteModal() {
+    const modal = document.getElementById('delete-xray-modal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease-out';
+        setTimeout(() => modal.remove(), 200);
+    }
+}
+
+async function confirmDeleteXray(xrayId) {
+    closeXrayDeleteModal();
+
+    try {
+        const response = await fetch(`/api/xrays/${xrayId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Error al eliminar la radiografía');
+
+        showNotification('Radiografía eliminada exitosamente', 'success');
+        sessionStorage.removeItem('current_xray_id');
+        setActiveSection('all-xrays');
+
+    } catch (error) {
+        console.error('Error deleting xray:', error);
+        showNotification(`Error al eliminar: ${error.message}`, 'error');
+    }
+}
+
+function viewXrayAnalysis(xrayId) {
+    sessionStorage.setItem('current_xray_id', xrayId);
+    sessionStorage.setItem('analysis_previous_section', 'xray-detail');
+    setActiveSection('analysis');
+}
+
+function goBackFromXrayDetail() {
+    const prev = sessionStorage.getItem('analysis_previous_section');
+    if (prev && prev !== 'xray-detail') {
+        setActiveSection(prev);
+    } else {
+        setActiveSection('all-xrays');
+    }
+}
+
+// ============================
 //    SECCIÓN: SUBIR RADIOGRAFÍA
 // ============================
 
