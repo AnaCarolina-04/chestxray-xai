@@ -38,17 +38,21 @@ app.register_blueprint(frontend_bp)
 # ============================
 with app.app_context():
     db.create_all()
-    print("✅ database.db inicializado")
-    
-    # Verificar tablas creadas
-    try:
-        inspector = inspect(db.engine)
-        tables = inspector.get_table_names()
-        print(f"📋 Tablas en la base de datos: {tables}")
-    except Exception as e:
-        print(f"⚠️ Error inspeccionando BD: {e}")
 
 if __name__ == '__main__':
-    print(f"📁 Backend ejecutándose en: {BASE_DIR}")
-    print(f"📁 Base de datos: {DB_PATH}")
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    import os
+    import logging
+    
+    # Silenciar logs de Werkzeug (servidor Flask)
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
+    
+    # Silenciar warnings de TensorFlow/PyTorch si están presentes
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    
+    # Mensaje simple de inicio
+    print("🚀 Servidor iniciado en http://localhost:5000")
+    print("   Presiona CTRL+C para detener\n")
+    
+    # Ejecutar sin debug para evitar mensajes de reinicio
+    app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)

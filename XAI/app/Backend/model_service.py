@@ -6,8 +6,6 @@ try:
     ML_AVAILABLE = True
 except ImportError:
     ML_AVAILABLE = False
-    print("⚠️  WARNING: PyTorch not installed. ML features will be disabled.")
-    print("   To enable ML features, install: pip install -r requirements-ml.txt")
 
 from PIL import Image
 import numpy as np
@@ -17,7 +15,6 @@ try:
     CV2_AVAILABLE = True
 except ImportError:
     CV2_AVAILABLE = False
-    print("⚠️  WARNING: OpenCV not installed. Some ML features may be limited.")
 
 import io
 import sys
