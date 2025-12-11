@@ -890,6 +890,9 @@ async function loadXrayDetailData(xrayId) {
 
         const xray = await response.json();
 
+        // Agregar timestamp para evitar caché del navegador
+        const timestamp = new Date().getTime();
+
         container.innerHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
                 <div>
@@ -898,7 +901,7 @@ async function loadXrayDetailData(xrayId) {
                     </h3>
                     <div style="border: 2px solid var(--border-color); border-radius: 0.75rem; overflow: hidden; background: #f9fafb;">
                         <img 
-                            src="/api/xrays/${xray.id}/image" 
+                            src="/api/xrays/${xray.id}/image?t=${timestamp}" 
                             alt="Radiografía" 
                             style="width: 100%; height: auto; display: block;"
                             onerror="this.style.background='#fee2e2'; this.alt='Error al cargar imagen';"
