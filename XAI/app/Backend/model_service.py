@@ -14,6 +14,9 @@ from PIL import Image
 import warnings
 import os
 
+# Import visualizer functions (circular import handled by lazy loading)
+_visualizer_module = None
+
 # Suppress TensorFlow warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -70,6 +73,17 @@ def preprocess_image_for_model(image_pil):
     img_array = np.expand_dims(img_array, axis=0)
     
     return img_array
+
+def _store_last_image(img_array):
+    """Store the last processed image for visualizer activation."""
+    global _visualizer_module
+    try:
+        if _visualizer_module is None:
+            from routes import visualizer as viz_module
+            _visualizer_module = viz_module
+        _visualizer_module.set_last_image(img_array)
+    except (ImportError, AttributeError):
+        pass  # Visualizer not available, skip
 
 # ==========================================
 # MODEL INITIALIZATION
@@ -460,6 +474,9 @@ def process_xray(image_bytes):
     img_array = preprocess_image_for_model(img)
     if img_array is None:
         return {"error": "Failed to preprocess image"}
+    
+    # Store for visualizer
+    _store_last_image(img_array)
 
     # Process with Grad-CAM
     cam, probs, target_class = get_gradcam_keras(model, img_array)
