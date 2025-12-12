@@ -1760,10 +1760,16 @@ function renderAnalysis() {
                             </div>
                         `}
                         
+                        
                         <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.2);">
-                            <button class="btn btn-sm" style="background: rgba(255,255,255,0.2); color: white; border: none; width: 100%;" onclick="setActiveSection('explainable-ai')">
-                                <i class="fa-solid fa-circle-question"></i> ¿Qué es una CNN?
-                            </button>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                <button class="btn btn-sm" style="background: rgba(255,255,255,0.2); color: white; border: none;" onclick="setActiveSection('explainable-ai')">
+                                    <i class="fa-solid fa-circle-question"></i> ¿Qué es una CNN?
+                                </button>
+                                <button class="btn btn-sm" style="background: rgba(255,255,255,0.3); color: white; border: none;" onclick="window.open('/visualizer', '_blank')">
+                                    <i class="fa-solid fa-network-wired"></i> Visualizador CNN
+                                </button>
+                            </div>
                         </div>
                     </div>
 

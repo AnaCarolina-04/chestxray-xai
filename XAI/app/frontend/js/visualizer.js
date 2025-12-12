@@ -6,12 +6,12 @@
 // Configuration
 const CONFIG = {
     API_BASE: 'http://localhost:5000',
-    LAYER_WIDTH: 180,
-    LAYER_HEIGHT: 60,
-    LAYER_SPACING: 40,
+    LAYER_WIDTH: 280,
+    LAYER_HEIGHT: 80,
+    LAYER_SPACING: 50,
     START_Y: 100,
-    START_X: 50,
-    ANIMATION_DURATION: 500
+    START_X: 100,
+    ANIMATION_DURATION: 400
 };
 
 // Global state
@@ -31,25 +31,25 @@ async function initializeVisualization() {
     try {
         // Get SVG element
         svg = d3.select('#network-canvas');
-        
+
         // Fetch model layers
         showLoading('Cargando arquitectura del modelo...');
         const response = await fetch(`${CONFIG.API_BASE}/model/layers`);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
+
         modelData = await response.json();
-        
+
         // Update model info
         updateModelInfo(modelData);
-        
+
         // Draw network
         drawNetwork(modelData.layers);
-        
+
         hideLoading();
-        
+
     } catch (error) {
         console.error('Error initializing visualizer:', error);
         showError(`Error loading model: ${error.message}`);
@@ -64,23 +64,23 @@ function drawNetwork(layers) {
         showError('No layers found in model');
         return;
     }
-    
+
     // Calculate canvas dimensions
     const canvasHeight = layers.length * (CONFIG.LAYER_HEIGHT + CONFIG.LAYER_SPACING) + CONFIG.START_Y * 2;
     const canvasWidth = CONFIG.LAYER_WIDTH * 2 + CONFIG.START_X * 2;
-    
+
     svg.attr('width', canvasWidth)
-       .attr('height', canvasHeight);
-    
+        .attr('height', canvasHeight);
+
     // Clear previous content
     svg.selectAll('*').remove();
-    
+
     // Create group for zoom/pan
     const g = svg.append('g');
-    
+
     // Draw connections first (so they appear behind blocks)
     drawConnections(g, layers);
-    
+
     // Draw layer blocks
     drawLayers(g, layers);
 }
@@ -90,12 +90,12 @@ function drawNetwork(layers) {
  */
 function drawConnections(g, layers) {
     const connections = g.append('g').attr('class', 'connections');
-    
+
     for (let i = 0; i < layers.length - 1; i++) {
         const y1 = CONFIG.START_Y + i * (CONFIG.LAYER_HEIGHT + CONFIG.LAYER_SPACING) + CONFIG.LAYER_HEIGHT / 2;
         const y2 = CONFIG.START_Y + (i + 1) * (CONFIG.LAYER_HEIGHT + CONFIG.LAYER_SPACING) + CONFIG.LAYER_HEIGHT / 2;
         const x = CONFIG.START_X + CONFIG.LAYER_WIDTH / 2;
-        
+
         connections.append('line')
             .attr('class', 'layer-connection')
             .attr('id', `connection-${i}`)
@@ -112,11 +112,11 @@ function drawConnections(g, layers) {
  */
 function drawLayers(g, layers) {
     const layersGroup = g.append('g').attr('class', 'layers');
-    
+
     layers.forEach((layer, index) => {
         const y = CONFIG.START_Y + index * (CONFIG.LAYER_HEIGHT + CONFIG.LAYER_SPACING);
         const x = CONFIG.START_X;
-        
+
         // Create layer group
         const layerGroup = layersGroup.append('g')
             .attr('class', 'layer-block')
@@ -124,43 +124,55 @@ function drawLayers(g, layers) {
             .attr('transform', `translate(${x}, ${y})`)
             .style('cursor', 'pointer')
             .on('click', () => selectLayer(layer, index));
-        
+
         // Get color based on layer type
         const color = getLayerColor(layer.type);
-        
-        // Draw rectangle
+
+        // Draw rectangle with gradient
         layerGroup.append('rect')
             .attr('class', 'layer-rect')
             .attr('width', CONFIG.LAYER_WIDTH)
             .attr('height', CONFIG.LAYER_HEIGHT)
-            .attr('rx', 8)
-            .attr('ry', 8)
+            .attr('rx', 12)
+            .attr('ry', 12)
             .attr('fill', color)
             .attr('stroke', '#64b5f6')
             .attr('stroke-width', 2)
-            .style('filter', 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))');
-        
-        // Layer name
+            .style('filter', 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4))');
+
+        // Layer name (bold, larger)
         layerGroup.append('text')
             .attr('class', 'layer-text')
             .attr('x', CONFIG.LAYER_WIDTH / 2)
-            .attr('y', 20)
+            .attr('y', 24)
             .attr('text-anchor', 'middle')
             .attr('fill', 'white')
-            .attr('font-size', '12px')
+            .attr('font-size', '14px')
             .attr('font-weight', 'bold')
-            .text(truncateText(layer.name, 20));
-        
+            .text(truncateText(layer.name, 28));
+
         // Layer type
         layerGroup.append('text')
             .attr('class', 'layer-text')
             .attr('x', CONFIG.LAYER_WIDTH / 2)
-            .attr('y', 38)
+            .attr('y', 44)
             .attr('text-anchor', 'middle')
-            .attr('fill', '#90caf9')
-            .attr('font-size', '10px')
+            .attr('fill', '#e3f2fd')
+            .attr('font-size', '11px')
+            .attr('opacity', 0.9)
             .text(layer.type);
-        
+
+        // Shape info (small text at bottom)
+        layerGroup.append('text')
+            .attr('class', 'layer-text')
+            .attr('x', CONFIG.LAYER_WIDTH / 2)
+            .attr('y', 64)
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#bbdefb')
+            .attr('font-size', '9px')
+            .attr('opacity', 0.7)
+            .text(truncateText(layer.shape, 32));
+
         // Layer index badge
         layerGroup.append('circle')
             .attr('cx', 10)
@@ -169,7 +181,7 @@ function drawLayers(g, layers) {
             .attr('fill', '#1976d2')
             .attr('stroke', 'white')
             .attr('stroke-width', 1);
-        
+
         layerGroup.append('text')
             .attr('class', 'layer-text')
             .attr('x', 10)
@@ -179,7 +191,7 @@ function drawLayers(g, layers) {
             .attr('font-size', '9px')
             .attr('font-weight', 'bold')
             .text(index);
-        
+
         // Animate on load
         layerGroup
             .style('opacity', 0)
@@ -208,7 +220,7 @@ function getLayerColor(layerType) {
         'Add': 'rgba(205, 220, 57, 0.8)',
         'Multiply': 'rgba(255, 193, 7, 0.8)'
     };
-    
+
     return colorMap[layerType] || 'rgba(100, 181, 246, 0.8)';
 }
 
@@ -217,14 +229,14 @@ function getLayerColor(layerType) {
  */
 function selectLayer(layer, index) {
     selectedLayer = layer;
-    
+
     // Remove previous selection
     d3.selectAll('.layer-rect').classed('selected', false);
     d3.selectAll('.layer-connection').classed('active', false);
-    
+
     // Highlight selected layer
     d3.select(`#layer-${index} .layer-rect`).classed('selected', true);
-    
+
     // Animate connections
     if (index > 0) {
         d3.select(`#connection-${index - 1}`).classed('active', true);
@@ -232,10 +244,10 @@ function selectLayer(layer, index) {
     if (index < modelData.layers.length - 1) {
         d3.select(`#connection-${index}`).classed('active', true);
     }
-    
+
     // Update layer info panel
     updateLayerInfo(layer);
-    
+
     // Enable activation button
     document.getElementById('get-activations-btn').disabled = false;
 }
@@ -245,7 +257,7 @@ function selectLayer(layer, index) {
  */
 function updateLayerInfo(layer) {
     const infoDiv = document.getElementById('layer-info');
-    
+
     infoDiv.innerHTML = `
         <div class="info-row">
             <span class="info-label">Name:</span>
@@ -279,10 +291,10 @@ function updateLayerInfo(layer) {
  */
 function updateModelInfo(data) {
     const infoDiv = document.getElementById('model-info');
-    
+
     const totalParams = data.layers.reduce((sum, layer) => sum + layer.params, 0);
     const trainableLayers = data.layers.filter(l => l.trainable).length;
-    
+
     infoDiv.innerHTML = `
         <div class="info-row">
             <span class="info-label">Model:</span>
@@ -308,20 +320,20 @@ function updateModelInfo(data) {
  */
 document.getElementById('get-activations-btn').addEventListener('click', async () => {
     if (!selectedLayer) return;
-    
+
     const displayDiv = document.getElementById('activation-display');
     displayDiv.innerHTML = '<div class="loading">Computing activations...</div>';
-    
+
     try {
         const response = await fetch(`${CONFIG.API_BASE}/model/activation/${encodeURIComponent(selectedLayer.name)}`);
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.error || error.message || 'Failed to get activations');
         }
-        
+
         const data = await response.json();
-        
+
         // Display activation image
         displayDiv.innerHTML = `
             <p style="color: #90caf9; font-size: 12px; margin-bottom: 10px;">
@@ -329,7 +341,7 @@ document.getElementById('get-activations-btn').addEventListener('click', async (
             </p>
             <img src="data:image/png;base64,${data.image}" alt="Layer Activations">
         `;
-        
+
     } catch (error) {
         console.error('Error getting activations:', error);
         displayDiv.innerHTML = `<div class="error">${error.message}</div>`;
@@ -356,7 +368,7 @@ function hideLoading() {
 function showError(message) {
     const modelInfo = document.getElementById('model-info');
     modelInfo.innerHTML = `<div class="error">${message}</div>`;
-    
+
     // Also show in canvas area
     svg.selectAll('*').remove();
     svg.append('text')
