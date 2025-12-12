@@ -235,63 +235,88 @@ def get_gradcam_keras(model, img_array, pred_index=None):
     if not ML_AVAILABLE:
         return None, None, None
     
-    # Find the last convolutional layer
-    last_conv_layer = None
-    for layer in reversed(model.layers):
-        if isinstance(layer, keras.layers.Conv2D):
-            last_conv_layer = layer
-            break
-    
-    if last_conv_layer is None:
-        print("Could not find convolutional layer in model")
+    try:
+        # Find the last convolutional layer
+        last_conv_layer = None
+        for layer in reversed(model.layers):
+            if isinstance(layer, keras.layers.Conv2D):
+                last_conv_layer = layer
+                break
+        
+        if last_conv_layer is None:
+            print("Could not find convolutional layer in model")
+            # Try to find batch normalization or other layers that might be last
+            for layer in reversed(model.layers):
+                if hasattr(layer, 'output_shape') and len(layer.output_shape) == 4:
+                    last_conv_layer = layer
+                    break
+        
+        if last_conv_layer is None:
+            print("ERROR: Could not find suitable layer for Grad-CAM")
+            return None, None, None
+        
+        print(f"Using layer for Grad-CAM: {last_conv_layer.name}")
+        
+        # Create a model that maps the input image to the activations of the last conv layer
+        grad_model = keras.models.Model(
+            inputs=[model.input],
+            outputs=[last_conv_layer.output, model.output]
+        )
+        
+        # Compute gradient of the top predicted class with regard to the output feature map
+        with tf.GradientTape() as tape:
+            conv_outputs, predictions = grad_model(img_array)
+            
+            # Get probabilities using sigmoid (multi-label classification)
+            probs = tf.sigmoid(predictions).numpy()[0]
+            
+            # Determine which class to compute Grad-CAM for
+            if pred_index is None:
+                pred_index = int(np.argmax(probs))
+            
+            # Get the score for the predicted class
+            class_channel = predictions[:, pred_index]
+        
+        # Gradient of the output neuron with regard to the output feature map
+        grads = tape.gradient(class_channel, conv_outputs)
+        
+        if grads is None:
+            print("ERROR: Could not compute gradients")
+            return None, probs, pred_index
+        
+        # Mean intensity of the gradient over a specific feature map channel
+        pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+        
+        # Get the activations of the last conv layer
+        conv_outputs_value = conv_outputs[0].numpy()
+        pooled_grads_value = pooled_grads.numpy()
+        
+        # Weight the channels by their importance
+        for i in range(pooled_grads_value.shape[0]):
+            conv_outputs_value[:, :, i] *= pooled_grads_value[i]
+        
+        # Average over all the weighted feature maps
+        heatmap = np.mean(conv_outputs_value, axis=-1)
+        
+        # Apply ReLU to the heatmap
+        heatmap = np.maximum(heatmap, 0)
+        
+        # Normalize the heatmap
+        max_val = np.max(heatmap)
+        if max_val > 0:
+            heatmap = heatmap / max_val
+        
+        # Resize heatmap to match input image size
+        if CV2_AVAILABLE:
+            heatmap = cv2.resize(heatmap, (224, 224))
+        
+        return heatmap, probs, pred_index
+        
+    except Exception as e:
+        print(f"ERROR in get_gradcam_keras: {e}")
+        import traceback
+        traceback.print_exc()
         return None, None, None
-    
-    # Create a model that maps the input image to the activations of the last conv layer
-    grad_model = keras.models.Model(
-        inputs=[model.input],
-        outputs=[last_conv_layer.output, model.output]
-    )
-    
-    # Compute gradient of the top predicted class with regard to the output feature map
-    with tf.GradientTape() as tape:
-        conv_outputs, predictions = grad_model(img_array)
-        
-        # Get probabilities using sigmoid (multi-label classification)
-        probs = tf.sigmoid(predictions).numpy()[0]
-        
-        # Determine which class to compute Grad-CAM for
-        if pred_index is None:
-            pred_index = int(np.argmax(probs))
-        
-        # Get the score for the predicted class
-        class_channel = predictions[:, pred_index]
-    
-    # Gradient of the output neuron with regard to the output feature map
-    grads = tape.gradient(class_channel, conv_outputs)
-    
-    # Mean intensity of the gradient over a specific feature map channel
-    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-    
-    # Multiply each channel by its importance
-    conv_outputs = conv_outputs[0]
-    pooled_grads_value = pooled_grads.numpy()
-    for i in range(pooled_grads_value.shape[0]):
-        conv_outputs = conv_outputs[:, :, i] * pooled_grads_value[i] if i == 0 else \
-                       conv_outputs + conv_outputs[:, :, i] * pooled_grads_value[i]
-    
-    # Average of the weighted feature maps
-    heatmap = tf.reduce_mean(conv_outputs, axis=-1) if len(conv_outputs.shape) > 2 else conv_outputs
-    
-    # Normalize the heatmap
-    heatmap = np.maximum(heatmap, 0)
-    max_val = np.max(heatmap)
-    if max_val > 0:
-        heatmap = heatmap / max_val
-    
-    # Resize heatmap to match input image size
-    heatmap = cv2.resize(heatmap.numpy() if hasattr(heatmap, 'numpy') else heatmap, (224, 224))
-    
-    return heatmap, probs, pred_index
 
 def get_gradcam_and_bbox_pytorch(model, input_tensor, target_class_idx=None, is_multi_label=True):
     """
