@@ -9,15 +9,17 @@ Una aplicación web completa para el análisis automatizado de radiografías de 
 ## 🌟 Características
 
 ### Funcionalidad Principal
-- **Clasificación Multi-etiqueta**: Detección simultánea de 14 patologías torácicas usando DenseNet121
+- **Clasificación Multi-etiqueta**: Detección simultánea de 6 patologías torácicas usando EfficientNetB0
 - **Clasificación Binaria**: Modelos especializados para condiciones específicas (Atelectasia, Cardiomegalia, Infiltración, etc.)
 - **IA Explicable**: Visualización de mapas de calor Grad-CAM que muestran qué regiones influyeron en el diagnóstico
+- **Visualizador CNN Interactivo**: Exploración visual 2D de la arquitectura completa del modelo con activaciones de capas en tiempo real
 - **Gestión de Pacientes**: Operaciones CRUD completas para pacientes y registros de seguimiento
 - **Seguimiento de Diagnósticos**: Historial completo de diagnósticos con flujo de validación
 - **Dashboard Interactivo**: Estadísticas en tiempo real y visualización de datos
 
 ### Aspectos Técnicos Destacados
-- **Modelos de Aprendizaje Profundo**: Arquitectura DenseNet121 pre-entrenada y ajustada en datasets de rayos X de tórax
+- **Modelos de Aprendizaje Profundo**: Arquitectura EfficientNetB0 pre-entrenada y ajustada en datasets de rayos X de tórax
+- **Visualizador CNN**: Diagrama interactivo 2D con D3.js para explorar la arquitectura del modelo y activaciones por capa
 - **API RESTful**: API backend limpia y bien documentada con Flask
 - **Frontend Moderno**: Aplicación de página única responsive con JavaScript vanilla
 - **Gestión de Base de Datos**: SQLite con SQLAlchemy ORM para manejo eficiente de datos
@@ -118,6 +120,90 @@ python reset_database.py
 
 ⚠️ **Advertencia**: Esto eliminará todos los datos incluyendo pacientes, diagnósticos y archivos subidos.
 
+## 🧠 Visualizador CNN Interactivo
+
+### Acceder al Visualizador
+
+1. Navega a `http://localhost:5000/visualizer` o
+2. Haz clic en "Visualizador CNN" en el menú lateral de la aplicación
+
+### Características del Visualizador
+
+#### 📊 Diagrama de Arquitectura 2D
+- **Visualización completa** de todas las ~240 capas del modelo EfficientNetB0
+- **Bloques coloreados** por tipo de capa (Conv2D, Dense, BatchNorm, Dropout, etc.)
+- **Conexiones animadas** entre capas para mostrar el flujo de datos
+- **Scroll vertical** suave para navegar por modelos profundos
+- **Diseño moderno** con tema oscuro y efectos glassmorphism
+
+#### 🔍 Exploración de Capas
+- **Clic en cualquier capa** para seleccionarla y ver información detallada:
+  - Nombre de la capa
+  - Tipo (Conv2D, Dense, Activation, etc.)
+  - Shape de salida
+  - Función de activación
+  - Número de parámetros
+  - Estado trainable/frozen
+- **Resaltado visual** de la capa seleccionada con animaciones
+
+#### 🎨 Visualización de Activaciones
+1. **Analiza primero una radiografía** desde el módulo principal
+2. **Selecciona cualquier capa** en el visualizador
+3. **Haz clic en "Get Layer Activations"** para ver:
+   - Mapas de características de capas convolucionales (hasta 64 canales)
+   - Gráficos de activación de capas densas
+   - Información del shape de activación
+
+### Uso Práctico
+
+```bash
+# 1. Inicia el servidor Flask
+python XAI/app/Backend/run.py
+
+# 2. En tu navegador, ve a:
+http://localhost:5000/visualizer
+
+# 3. Explora el modelo:
+- Haz scroll para ver todas las capas
+- Haz clic en una capa para ver detalles
+- Analiza una imagen primero para ver activaciones
+```
+
+### Colores de Capas
+
+| Tipo de Capa | Color |
+|--------------|-------|
+| InputLayer | 🟢 Verde |
+| Conv2D | 🔵 Azul |
+| BatchNormalization | 🟣 Púrpura |
+| Dense | 🔴 Rosa |
+| Dropout | 🟤 Marrón |
+| GlobalAveragePooling2D | 🔷 Teal |
+| Activation | 🟠 Naranja |
+
+### Endpoints del Visualizador
+
+```http
+GET /visualizer
+# Renderiza la página del visualizador
+
+GET /model/layers
+# Retorna JSON con todas las capas del modelo
+{
+  "total_layers": 240,
+  "model_name": "efficientnetb0",
+  "layers": [...]
+}
+
+GET /model/activation/<layer_name>
+# Retorna imagen base64 con activaciones
+{
+  "layer_name": "conv2d_50",
+  "activation_shape": "(1, 7, 7, 1280)",
+  "image": "iVBORw0KGgoAAAANSUhEU..."
+}
+```
+
 ## 📁 Estructura del Proyecto
 
 ```
@@ -131,6 +217,7 @@ chestxray-xai/
 │       │   │   ├── xrays.py         # Carga y gestión de rayos X
 │       │   │   ├── diagnoses.py     # Operaciones de diagnósticos
 │       │   │   ├── predictions.py   # Endpoints de predicción de IA
+│       │   │   ├── visualizer.py    # Endpoints de visualización CNN
 │       │   │   └── frontend.py      # Servicio de archivos estáticos
 │       │   ├── models.py            # Modelos de base de datos SQLAlchemy
 │       │   ├── model_service.py     # Carga e inferencia de modelos ML
@@ -140,12 +227,14 @@ chestxray-xai/
 │       │   └── requirements.txt     # Dependencias de Python
 │       ├── frontend/
 │       │   ├── index.html           # Archivo HTML principal
+│       │   ├── visualizer.html      # Página del visualizador CNN
 │       │   ├── css/
 │       │   │   └── styles.css       # Estilos de la aplicación
 │       │   └── js/
-│       │       └── app.js           # Lógica de la aplicación frontend
+│       │       ├── app.js           # Lógica de la aplicación frontend
+│       │       └── visualizer.js    # Lógica del visualizador CNN (D3.js)
 │       ├── models/                  # Pesos de modelos pre-entrenados
-│       │   ├── densenet_best.pth    # DenseNet121 multi-etiqueta
+│       │   ├── best_model.h5        # EfficientNetB0 multi-etiqueta
 │       │   └── densenet_*.pth       # Modelos de clasificación binaria
 │       ├── notebooks/               # Notebooks de Jupyter
 │       │   └── X_rays.ipynb         # Exploración y preprocesamiento de datos
@@ -242,33 +331,27 @@ POST   /api/predict            # Ejecutar predicción de IA en rayo X
 
 ## 🧠 Arquitectura del Modelo
 
-### Modelo Multi-etiqueta (DenseNet121)
+### Modelo Multi-etiqueta (EfficientNetB0)
 
-- **Arquitectura**: DenseNet121 pre-entrenado en ImageNet
-- **Tamaño de Entrada**: 224x224 píxeles, escala de grises convertida a 3 canales
-- **Salida**: 14 probabilidades de patologías (activación sigmoide)
+- **Arquitectura**: EfficientNetB0 pre-entrenado en ImageNet
+- **Tamaño de Entrada**: 224x224 píxeles, 3 canales RGB
+- **Salida**: 6 probabilidades de patologías (activación sigmoide)
 - **Estrategia de Entrenamiento**: 
-  - Fase 1: Extracción de características (backbone congelado)
-  - Fase 2: Ajuste fino (últimas capas descongeladas)
-- **Optimización**: Optimizador Adam con programación de tasa de aprendizaje
-- **Función de Pérdida**: Entropía cruzada binaria con ponderación de clases
+  - Transfer Learning con fine-tuning de últimas 100 capas
+  - Aumento de datos (flip, brillo, contraste, saturación)
+- **Optimización**: Optimizador Adam con learning rate 0.00031
+- **Función de Pérdida**: Binary crossentropy con ponderación de clases
+- **Regularización**: Dropout (0.31), BatchNormalization
+- **Callbacks**: EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 
-### Patologías Detectadas
+### Patologías Detectadas (Multi-label)
 
-1. Atelectasia
-2. Cardiomegalia
-3. Derrame
-4. Infiltración
-5. Masa
-6. Nódulo
-7. Neumonía
-8. Neumotórax
-9. Consolidación
-10. Edema
-11. Enfisema
-12. Fibrosis
-13. Engrosamiento Pleural
-14. Hernia
+1. **Other Disease** (Otras enfermedades)
+2. **Infiltration** (Infiltración)
+3. **Atelectasis** (Atelectasia)
+4. **Effusion** (Derrame pleural)
+5. **Nodule** (Nódulo)
+6. **Cardiomegaly** (Cardiomegalia)
 
 ### Modelos de Clasificación Binaria
 
@@ -346,14 +429,17 @@ python XAI/app/training/train_optimized.py
 - **Pillow**: Procesamiento de imágenes
 
 ### Aprendizaje Automático
-- **TensorFlow 2.18**: Framework de aprendizaje profundo
-- **PyTorch 2.6**: Framework ML alternativo
+- **TensorFlow 2.15+**: Framework de aprendizaje profundo principal
+- **PyTorch 2.0+**: Framework ML para modelos legacy  
 - **NumPy**: Computaciones numéricas
+- **Matplotlib**: Visualización de activaciones de capas
 - **Optuna**: Optimización de hiperparámetros
 
 ### Frontend
 - **JavaScript Vanilla**: Sin dependencias de frameworks
+- **D3.js v7**: Visualización de datos y diagramas interactivos
 - **HTML5/CSS3**: Estándares web modernos
+- **Font Awesome**: Iconografía
 
 ### Base de Datos
 - **SQLite**: Base de datos relacional ligera
