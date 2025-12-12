@@ -10,6 +10,7 @@ from routes.diagnoses import bp as diagnoses_bp
 from routes.predictions import bp as predictions_bp
 from routes.frontend import bp as frontend_bp
 from routes.visualizer import bp as visualizer_bp
+from routes.visualizer_v2 import bp as visualizer_v2_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -34,6 +35,7 @@ app.register_blueprint(diagnoses_bp)
 app.register_blueprint(predictions_bp)
 app.register_blueprint(frontend_bp)
 app.register_blueprint(visualizer_bp)
+app.register_blueprint(visualizer_v2_bp)
 
 # ============================
 #       INIT DATABASE

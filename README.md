@@ -120,16 +120,19 @@ python reset_database.py
 
 ⚠️ **Advertencia**: Esto eliminará todos los datos incluyendo pacientes, diagnósticos y archivos subidos.
 
-## 🧠 Visualizador CNN Interactivo
+
+## Visualizador CNN Interactivo V2
 
 ### Acceder al Visualizador
 
 1. Navega a `http://localhost:5000/visualizer` o
-2. Haz clic en "Visualizador CNN" en el menú lateral de la aplicación
+2. Haz clic en "Visualizador CNN" en el menú lateral o en la card de resultados
 
-### Características del Visualizador
+### Version 2.0 - Diseño Horizontal Moderno
 
-#### 📊 Diagrama de Arquitectura 2D
+El visualizador ha sido rediseñado siguiendo el estilo de Netron y TensorBoard con layout horizontal y agrupación inteligente de capas.
+
+### Agrupación Inteligente de Capas
 - **Visualización completa** de todas las ~240 capas del modelo EfficientNetB0
 - **Bloques coloreados** por tipo de capa (Conv2D, Dense, BatchNorm, Dropout, etc.)
 - **Conexiones animadas** entre capas para mostrar el flujo de datos

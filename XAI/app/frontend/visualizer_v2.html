@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNN Architecture Visualizer - ChestXRay XAI</title>
+
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/visualizer_v2.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1><i class="fa-solid fa-project-diagram"></i> CNN Architecture Visualizer</h1>
+                <span class="model-badge" id="model-name">EfficientNetB0</span>
+            </div>
+            <div class="header-right">
+                <button class="btn-icon" id="zoom-out-btn" title="Zoom Out">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                <button class="btn-icon" id="zoom-reset-btn" title="Reset Zoom">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+                <button class="btn-icon" id="zoom-in-btn" title="Zoom In">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+                <div class="divider"></div>
+                <a href="/" class="btn-back">
+                    <i class="fa-solid fa-arrow-left"></i> Back to App
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Canvas Area -->
+        <div class="canvas-wrapper" id="canvas-wrapper">
+            <svg id="network-canvas"></svg>
+            <div class="canvas-overlay">
+                <div class="stats-panel">
+                    <div class="stat-item">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <div>
+                            <div class="stat-label">Blocks</div>
+                            <div class="stat-value" id="stat-blocks">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fa-solid fa-hashtag"></i>
+                        <div>
+                            <div class="stat-label">Parameters</div>
+                            <div class="stat-value" id="stat-params">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <aside class="side-panel" id="side-panel">
+            <div class="panel-header">
+                <h3>Block Details</h3>
+                <button class="btn-close" id="close-panel">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <div class="panel-content" id="panel-content">
+                <div class="empty-state">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <p>Click on a block to view details</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Loading model architecture...</p>
+        </div>
+    </div>
+
+    <script src="/js/visualizer_v2.js"></script>
+</body>
+
+</html>
