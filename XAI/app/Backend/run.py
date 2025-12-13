@@ -33,9 +33,9 @@ app.register_blueprint(patients_bp)
 app.register_blueprint(xrays_bp)
 app.register_blueprint(diagnoses_bp)
 app.register_blueprint(predictions_bp)
-app.register_blueprint(frontend_bp)
 app.register_blueprint(visualizer_bp)
 app.register_blueprint(visualizer_v2_bp)
+app.register_blueprint(frontend_bp)
 
 # ============================
 #       INIT DATABASE

@@ -10,6 +10,9 @@ bp = Blueprint('visualizer', __name__)
 from model_service import get_main_model, ML_AVAILABLE
 from config import FRONTEND_DIR
 
+# Import shared state for last processed image
+from shared_state import get_last_image, set_last_image
+
 # Attempt to import TensorFlow
 try:
     import tensorflow as tf
@@ -19,20 +22,6 @@ except ImportError:
     TF_AVAILABLE = False
     tf = None
     keras = None
-
-# Store last processed image globally
-_last_image_array = None
-_last_image_path = None
-
-def set_last_image(img_array, img_path=None):
-    """Store the last processed image for activation visualization."""
-    global _last_image_array, _last_image_path
-    _last_image_array = img_array
-    _last_image_path = img_path
-
-def get_last_image():
-    """Get the last processed image."""
-    return _last_image_array, _last_image_path
 
 
 @bp.route('/visualizer')

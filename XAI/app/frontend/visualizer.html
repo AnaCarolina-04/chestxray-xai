@@ -1,97 +1,384 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CNN Architecture Visualizer - ChestXRay XAI</title>
-
-    <!-- D3.js -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-
-    <!-- Font Awesome -->
+    <title>CNN Architecture Visualizer</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Styles -->
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-panel: #1e293b;
+            --bg-card: #283750;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --border: #334155;
+            --success: #10b981;
+            --dense-block: #2563eb;
+            --trans-block: #f59e0b;
+        }
 
-    <link rel="stylesheet" href="/css/visualizer_v2.css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            height: 60px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .ops-controls button {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .ops-controls button:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Main Workspace */
+        .workspace {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Architecture Canvas */
+        .arch-container {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            display: flex;
+            align-items: center;
+            padding: 2rem 4rem;
+            gap: 3rem;
+            cursor: grab;
+        }
+
+        .arch-container:active {
+            cursor: grabbing;
+        }
+
+        /* BLOCKS DESIGN */
+        .model-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            flex-shrink: 0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .stage-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .block-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 140px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            z-index: 2;
+        }
+
+        .block-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px var(--accent-glow);
+            border-color: var(--accent);
+        }
+
+        .block-card.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+            background: #1e293b;
+        }
+
+        /* Specific Block Types */
+        .block-dense {
+            border-top: 4px solid var(--dense-block);
+        }
+
+        .block-transition {
+            border-top: 4px solid var(--trans-block);
+            height: 80px;
+            width: 100px;
+            justify-content: center;
+        }
+
+        .block-input {
+            border-top: 4px solid #fff;
+        }
+
+        .block-output {
+            border-top: 4px solid var(--success);
+        }
+
+        .block-icon {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.2rem;
+        }
+
+        .block-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .block-meta {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* Connections */
+        .connector {
+            position: absolute;
+            right: -3rem;
+            top: 50%;
+            width: 3rem;
+            height: 2px;
+            background: var(--border);
+            z-index: 1;
+        }
+
+        .connector::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -3px;
+            width: 0;
+            height: 0;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            border-left: 6px solid var(--border);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 350px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 20;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        /* Details */
+        .detail-group {
+            margin-bottom: 2rem;
+        }
+
+        .detail-group h4 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+        }
+
+        /* Layers List */
+        .layer-item {
+            padding: 0.6rem;
+            background: var(--bg-card);
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            border-left: 2px solid var(--border);
+        }
+
+        .layer-item:hover {
+            border-left-color: var(--accent);
+        }
+
+        /* Loading */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--bg-card);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Grad CAM & Activations Image */
+        .vis-image {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 0.5rem;
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="header-left">
-                <h1><i class="fa-solid fa-project-diagram"></i> CNN Architecture Visualizer</h1>
-                <span class="model-badge" id="model-name">EfficientNetB0</span>
-            </div>
-            <div class="header-right">
-                <button class="btn-icon" id="zoom-out-btn" title="Zoom Out">
-                    <i class="fa-solid fa-minus"></i>
-                </button>
-                <button class="btn-icon" id="zoom-reset-btn" title="Reset Zoom">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                </button>
-                <button class="btn-icon" id="zoom-in-btn" title="Zoom In">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-                <div class="divider"></div>
-                <a href="/" class="btn-back">
-                    <i class="fa-solid fa-arrow-left"></i> Back to App
-                </a>
-            </div>
-        </div>
-    </header>
 
-    <!-- Main Container -->
-    <div class="container">
-        <!-- Canvas Area -->
-        <div class="canvas-wrapper" id="canvas-wrapper">
-            <svg id="network-canvas"></svg>
-            <div class="canvas-overlay">
-                <div class="stats-panel">
-                    <div class="stat-item">
-                        <i class="fa-solid fa-layer-group"></i>
-                        <div>
-                            <div class="stat-label">Blocks</div>
-                            <div class="stat-value" id="stat-blocks">0</div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <i class="fa-solid fa-hashtag"></i>
-                        <div>
-                            <div class="stat-label">Parameters</div>
-                            <div class="stat-value" id="stat-params">0</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Side Panel -->
-        <aside class="side-panel" id="side-panel">
-            <div class="panel-header">
-                <h3>Block Details</h3>
-                <button class="btn-close" id="close-panel">
-                    <i class="fa-solid fa-times"></i>
-                </button>
-            </div>
-
-            <div class="panel-content" id="panel-content">
-                <div class="empty-state">
-                    <i class="fa-solid fa-hand-pointer"></i>
-                    <p>Click on a block to view details</p>
-                </div>
-            </div>
-        </aside>
+    <!-- Loading Screen -->
+    <div id="loading" class="loader-overlay">
+        <div class="spinner"></div>
+        <div style="font-weight: 500; letter-spacing: 1px;">ANALYZING MODEL ARCHITECTURE...</div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-spinner">
-            <i class="fa-solid fa-spinner fa-spin"></i>
-            <p>Loading model architecture...</p>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <i class="fa-solid fa-network-wired" style="color: var(--accent); font-size: 1.2rem;"></i>
+            <div>
+                <h1 style="font-size: 1.1rem; font-weight: 700;">CNN Explorer</h1>
+                <div id="model-name" style="font-size: 0.75rem; color: var(--text-secondary);">Model: Checking...</div>
+            </div>
+        </div>
+        <div class="ops-controls">
+            <button onclick="window.location.href='/'"><i class="fa-solid fa-arrow-left"></i> Back to App</button>
+            <button id="btn-gradcam"><i class="fa-solid fa-fire"></i> Grad-CAM</button>
+            <button id="btn-hyperparams"><i class="fa-solid fa-sliders"></i> Params</button>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+        <div class="arch-container" id="diagram-container">
+            <!-- ARCHITECTURE BLOCKS WILL BE INJECTED HERE -->
+        </div>
+
+        <!-- Sidebar Panel -->
+        <div class="sidebar" id="side-panel">
+            <div class="sidebar-header">
+                <h3 id="panel-title">Details</h3>
+                <button class="close-btn" onclick="closePanel()"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="sidebar-content" id="panel-content">
+                <!-- DYNAMIC CONTENT -->
+            </div>
         </div>
     </div>
 

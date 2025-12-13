@@ -14,9 +14,6 @@ from PIL import Image
 import warnings
 import os
 
-# Import visualizer functions (circular import handled by lazy loading)
-_visualizer_module = None
-
 # Suppress TensorFlow warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -37,7 +34,20 @@ from pathlib import Path
 # ==========================================
 
 from config import MODELS_DIR
-LABELS = ['Atelectasis', 'Effusion', 'Infiltration', 'Cardiomegaly', 'Nodule']
+# State for XAI Visualizer
+_last_processed_image = None
+_last_prediction_results = None
+
+def get_last_image():
+    """Get the last processed image for visualization."""
+    return _last_processed_image, _last_prediction_results
+
+def set_last_image(img_array, predictions=None):
+    """Set the last processed image state."""
+    global _last_processed_image, _last_prediction_results
+    _last_processed_image = img_array
+    _last_prediction_results = predictions
+LABELS = ['Other Disease', 'Infiltration', 'Atelectasis', 'Effusion', 'Nodule', 'Cardiomegaly']
 
 _cache = {}
 
@@ -64,10 +74,9 @@ def preprocess_image_for_model(image_pil):
     # Normalize to [0, 1]
     img_array = img_array / 255.0
     
-    # Apply ImageNet normalization
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    img_array = (img_array - mean) / std
+    # NOTE: We removed ImageNet mean/std normalization as checking the 
+    # training consistency suggests the model was trained with simple [0,1] scaling.
+    # Applying incorrect normalization distorts the input and leads to poor predictions.
     
     # Add batch dimension
     img_array = np.expand_dims(img_array, axis=0)
@@ -76,14 +85,8 @@ def preprocess_image_for_model(image_pil):
 
 def _store_last_image(img_array):
     """Store the last processed image for visualizer activation."""
-    global _visualizer_module
-    try:
-        if _visualizer_module is None:
-            from routes import visualizer as viz_module
-            _visualizer_module = viz_module
-        _visualizer_module.set_last_image(img_array)
-    except (ImportError, AttributeError):
-        pass  # Visualizer not available, skip
+    # Use local function directly (no import needed)
+    set_last_image(img_array)
 
 # ==========================================
 # MODEL INITIALIZATION
@@ -281,8 +284,8 @@ def get_gradcam_keras(model, img_array, pred_index=None):
         with tf.GradientTape() as tape:
             conv_outputs, predictions = grad_model(img_array)
             
-            # Get probabilities using sigmoid (multi-label classification)
-            probs = tf.sigmoid(predictions).numpy()[0]
+            # Get probabilities (model already has sigmoid activation)
+            probs = predictions[0].numpy()
             
             # Determine which class to compute Grad-CAM for
             if pred_index is None:

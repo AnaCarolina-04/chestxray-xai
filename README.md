@@ -121,90 +121,52 @@ python reset_database.py
 ⚠️ **Advertencia**: Esto eliminará todos los datos incluyendo pacientes, diagnósticos y archivos subidos.
 
 
-## Visualizador CNN Interactivo V2
+## Visualizador CNN Interactivo V4 (Dynamic Block Explorer)
 
 ### Acceder al Visualizador
 
 1. Navega a `http://localhost:5000/visualizer` o
 2. Haz clic en "Visualizador CNN" en el menú lateral o en la card de resultados
 
-### Version 2.0 - Diseño Horizontal Moderno
+### Version 4.0 - Exploración Inteligente de Arquitectura
 
-El visualizador ha sido rediseñado siguiendo el estilo de Netron y TensorBoard con layout horizontal y agrupación inteligente de capas.
+El visualizador ha sido completamente reescrito para ofrecer una exploración dinámica basada en bloques lógicos, compatible tanto con EfficientNet como DenseNet.
 
-### Agrupación Inteligente de Capas
-- **Visualización completa** de todas las ~240 capas del modelo EfficientNetB0
-- **Bloques coloreados** por tipo de capa (Conv2D, Dense, BatchNorm, Dropout, etc.)
-- **Conexiones animadas** entre capas para mostrar el flujo de datos
-- **Scroll vertical** suave para navegar por modelos profundos
-- **Diseño moderno** con tema oscuro y efectos glassmorphism
-
-#### 🔍 Exploración de Capas
-- **Clic en cualquier capa** para seleccionarla y ver información detallada:
-  - Nombre de la capa
-  - Tipo (Conv2D, Dense, Activation, etc.)
-  - Shape de salida
-  - Función de activación
-  - Número de parámetros
-  - Estado trainable/frozen
-- **Resaltado visual** de la capa seleccionada con animaciones
-
-#### 🎨 Visualización de Activaciones
-1. **Analiza primero una radiografía** desde el módulo principal
-2. **Selecciona cualquier capa** en el visualizador
-3. **Haz clic en "Get Layer Activations"** para ver:
-   - Mapas de características de capas convolucionales (hasta 64 canales)
-   - Gráficos de activación de capas densas
-   - Información del shape de activación
+### Características Principales
+- **Auto-Detección de Arquitectura**: Identifica automáticamente si el modelo es EfficientNet, DenseNet o Custom.
+- **Agrupación Semántica**: Organiza cientos de capas en bloques funcionales (Dense Blocks, Transition Layers, Inverted Residuals) para facilitar la comprensión.
+- **Inspector de Activaciones V2**: Visualiza mapas de características de cualquier bloque con un solo clic.
+- **Grad-CAM Integrado**: Visualización y análisis de explicaciones directamente en la interfaz del explorador.
+- **Diseño Responsivo**: Nueva interfaz oscura optimizada para monitores de alta resolución.
 
 ### Uso Práctico
 
-```bash
-# 1. Inicia el servidor Flask
-python XAI/app/Backend/run.py
+1. **Analiza una imagen**: Sube una radiografía en la página principal.
+2. **Abre el Visualizador**: Ve al menú "Visualizador CNN".
+3. **Explora**: Haz clic en los bloques para ver sus capas internas.
+4. **Inspecciona**: Usa "View Feature Maps" para ver cómo cada bloque procesa la imagen.
 
-# 2. En tu navegador, ve a:
-http://localhost:5000/visualizer
-
-# 3. Explora el modelo:
-- Haz scroll para ver todas las capas
-- Haz clic en una capa para ver detalles
-- Analiza una imagen primero para ver activaciones
-```
-
-### Colores de Capas
-
-| Tipo de Capa | Color |
-|--------------|-------|
-| InputLayer | 🟢 Verde |
-| Conv2D | 🔵 Azul |
-| BatchNormalization | 🟣 Púrpura |
-| Dense | 🔴 Rosa |
-| Dropout | 🟤 Marrón |
-| GlobalAveragePooling2D | 🔷 Teal |
-| Activation | 🟠 Naranja |
-
-### Endpoints del Visualizador
+### Endpoints del Visualizador (API V2)
 
 ```http
 GET /visualizer
-# Renderiza la página del visualizador
+# Renderiza la interfaz V4
 
-GET /model/layers
-# Retorna JSON con todas las capas del modelo
+GET /api/v2/model/structure
+# Retorna la jerarquía de bloques del modelo detectado
 {
-  "total_layers": 240,
-  "model_name": "efficientnetb0",
-  "layers": [...]
+  "architecture": "efficientnetb0",
+  "blocks": [
+    {"name": "Block 1A", "type": "EffectiveBlock", "layers": [...]},
+    ...
+  ]
 }
 
-GET /model/activation/<layer_name>
-# Retorna imagen base64 con activaciones
-{
-  "layer_name": "conv2d_50",
-  "activation_shape": "(1, 7, 7, 1280)",
-  "image": "iVBORw0KGgoAAAANSUhEU..."
-}
+GET /api/v2/model/activation/<layer_name>
+# Obtiene mapas de características de una capa específica
+
+GET /api/v2/model/gradcam
+# Genera heatmap explicativo sobre la última imagen analizada
 ```
 
 ## 📁 Estructura del Proyecto

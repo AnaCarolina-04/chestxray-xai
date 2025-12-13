@@ -1,482 +1,249 @@
 /**
- * CNN Visualizer V2 - Modern Horizontal Layout with D3.js
- * Supports intelligent block grouping, zoom/pan, and interactive exploration
+ * CNN Visualizer V4 - Dynamic Block Explorer
+ * Supports auto-grouped architectures like EfficientNet & DenseNet
  */
 
-// ===== CONFIGURATION =====
-const CONFIG = {
-    API_BASE: 'http://localhost:5000',
-    BLOCK_WIDTH: 200,
-    BLOCK_HEIGHT: 120,
-    BLOCK_SPACING_X: 80,
-    BLOCK_SPACING_Y: 60,
-    START_X: 100,
-    START_Y: 150,
-    ANIMATION_DURATION: 300
-};
+const API_BASE = 'http://localhost:5000';
 
-// ===== GLOBAL STATE =====
-let modelData = null;
-let selectedBlock = null;
-let svg = null;
-let zoomBehavior = null;
-let currentZoom = 1;
-
-// ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
-    initializeVisualizer();
+    init();
 });
 
-async function initializeVisualizer() {
+async function init() {
     try {
-        showLoading();
-
-        // Initialize SVG with zoom
-        initializeSVG();
-
-        // Fetch grouped layers
-        const response = await fetch(`${CONFIG.API_BASE}/model/layers_grouped`);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        modelData = await response.json();
-
-        // Update stats
-        updateStats(modelData);
-
-        // Draw network
-        drawNetwork(modelData.blocks);
-
-        hideLoading();
-
-    } catch (error) {
-        console.error('Error initializing visualizer:', error);
-        showError(`Error loading model: ${error.message}`);
-        hideLoading();
-    }
-}
-
-// ===== SVG INITIALIZATION =====
-function initializeSVG() {
-    svg = d3.select('#network-canvas');
-
-    // Create main group for zoom/pan
-    const g = svg.append('g').attr('id', 'main-group');
-
-    // Setup zoom behavior
-    zoomBehavior = d3.zoom()
-        .scaleExtent([0.3, 3])
-        .on('zoom', (event) => {
-            g.attr('transform', event.transform);
-            currentZoom = event.transform.k;
-        });
-
-    svg.call(zoomBehavior);
-
-    // Zoom controls
-    document.getElementById('zoom-in-btn').addEventListener('click', () => {
-        svg.transition().duration(300).call(zoomBehavior.scaleBy, 1.3);
-    });
-
-    document.getElementById('zoom-out-btn').addEventListener('click', () => {
-        svg.transition().duration(300).call(zoomBehavior.scaleBy, 0.7);
-    });
-
-    document.getElementById('zoom-reset-btn').addEventListener('click', () => {
-        svg.transition().duration(300).call(zoomBehavior.transform, d3.zoomIdentity);
-    });
-
-    // Close panel button
-    document.getElementById('close-panel').addEventListener('click', () => {
-        closeSidePanel();
-    });
-}
-
-// ===== NETWORK DRAWING =====
-function drawNetwork(blocks) {
-    if (!blocks || blocks.length === 0) {
-        showError('No blocks found in model');
-        return;
-    }
-
-    const g = d3.select('#main-group');
-
-    // Calculate canvas dimensions
-    const canvasWidth = blocks.length * (CONFIG.BLOCK_WIDTH + CONFIG.BLOCK_SPACING_X) + CONFIG.START_X * 2;
-    const canvasHeight = CONFIG.BLOCK_HEIGHT + CONFIG.START_Y * 2;
-
-    svg.attr('width', canvasWidth)
-        .attr('height', Math.max(canvasHeight, window.innerHeight - 70));
-
-    // Clear previous content
-    g.selectAll('*').remove();
-
-    // Draw connections first
-    drawConnections(g, blocks);
-
-    // Draw blocks
-    drawBlocks(g, blocks);
-}
-
-// ===== CONNECTIONS =====
-function drawConnections(g, blocks) {
-    const connectionsGroup = g.append('g').attr('class', 'connections');
-
-    for (let i = 0; i < blocks.length - 1; i++) {
-        const x1 = CONFIG.START_X + i * (CONFIG.BLOCK_WIDTH + CONFIG.BLOCK_SPACING_X) + CONFIG.BLOCK_WIDTH;
-        const x2 = CONFIG.START_X + (i + 1) * (CONFIG.BLOCK_WIDTH + CONFIG.BLOCK_SPACING_X);
-        const y = CONFIG.START_Y + CONFIG.BLOCK_HEIGHT / 2;
-
-        // Draw smooth line
-        connectionsGroup.append('path')
-            .attr('class', 'connection')
-            .attr('id', `connection-${i}`)
-            .attr('d', `M ${x1} ${y} L ${x2} ${y}`)
-            .attr('stroke', '#cbd5e1')
-            .attr('stroke-width', 2)
-            .attr('fill', 'none')
-            .style('opacity', 0)
-            .transition()
-            .duration(CONFIG.ANIMATION_DURATION)
-            .delay(i * 50)
-            .style('opacity', 1);
-    }
-}
-
-// ===== BLOCKS =====
-function drawBlocks(g, blocks) {
-    const blocksGroup = g.append('g').attr('class', 'blocks');
-
-    blocks.forEach((block, index) => {
-        const x = CONFIG.START_X + index * (CONFIG.BLOCK_WIDTH + CONFIG.BLOCK_SPACING_X);
-        const y = CONFIG.START_Y;
-
-        // Create block group
-        const blockGroup = blocksGroup.append('g')
-            .attr('class', 'block')
-            .attr('id', `block-${index}`)
-            .attr('transform', `translate(${x}, ${y})`)
-            .style('cursor', 'pointer')
-            .on('click', () => selectBlock(block, index))
-            .on('mouseenter', function () {
-                d3.select(this).select('.block-rect')
-                    .transition()
-                    .duration(200)
-                    .attr('transform', 'translate(0, -5)')
-                    .style('filter', 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15))');
-            })
-            .on('mouseleave', function () {
-                if (selectedBlock !== block) {
-                    d3.select(this).select('.block-rect')
-                        .transition()
-                        .duration(200)
-                        .attr('transform', 'translate(0, 0)')
-                        .style('filter', 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))');
-                }
-            });
-
-        // Get block color
-        const color = getBlockGradient(block.type);
-
-        // Draw block rectangle with gradient
-        const defs = svg.append('defs');
-        const gradient = defs.append('linearGradient')
-            .attr('id', `gradient-${index}`)
-            .attr('x1', '0%')
-            .attr('y1', '0%')
-            .attr('x2', '0%')
-            .attr('y2', '100%');
-
-        const colors = color.match(/rgba?\([^)]+\)/g);
-        if (colors && colors.length >= 2) {
-            gradient.append('stop')
-                .attr('offset', '0%')
-                .attr('stop-color', colors[0]);
-            gradient.append('stop')
-                .attr('offset', '100%')
-                .attr('stop-color', colors[1]);
-        }
-
-        blockGroup.append('rect')
-            .attr('class', 'block-rect')
-            .attr('width', CONFIG.BLOCK_WIDTH)
-            .attr('height', CONFIG.BLOCK_HEIGHT)
-            .attr('rx', 12)
-            .attr('ry', 12)
-            .attr('fill', `url(#gradient-${index})`)
-            .style('filter', 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))')
-            .style('opacity', 0)
-            .transition()
-            .duration(CONFIG.ANIMATION_DURATION)
-            .delay(index * 50)
-            .style('opacity', 1);
-
-        // Block icon
-        blockGroup.append('text')
-            .attr('class', 'block-icon')
-            .attr('x', CONFIG.BLOCK_WIDTH / 2)
-            .attr('y', 35)
-            .attr('text-anchor', 'middle')
-            .attr('fill', 'white')
-            .attr('font-size', '24px')
-            .attr('font-family', 'FontAwesome')
-            .text(getBlockIcon(block.type))
-            .style('opacity', 0)
-            .transition()
-            .duration(CONFIG.ANIMATION_DURATION)
-            .delay(index * 50 + 100)
-            .style('opacity', 1);
-
-        // Block name
-        blockGroup.append('text')
-            .attr('class', 'block-name')
-            .attr('x', CONFIG.BLOCK_WIDTH / 2)
-            .attr('y', 65)
-            .attr('text-anchor', 'middle')
-            .attr('fill', 'white')
-            .attr('font-size', '12px')
-            .attr('font-weight', '600')
-            .text(truncateText(block.name, 20))
-            .style('opacity', 0)
-            .transition()
-            .duration(CONFIG.ANIMATION_DURATION)
-            .delay(index * 50 + 150)
-            .style('opacity', 0.95);
-
-        // Block type
-        blockGroup.append('text')
-            .attr('class', 'block-type-label')
-            .attr('x', CONFIG.BLOCK_WIDTH / 2)
-            .attr('y', 85)
-            .attr('text-anchor', 'middle')
-            .attr('fill', 'white')
-            .attr('font-size', '10px')
-            .text(block.type)
-            .style('opacity', 0)
-            .transition()
-            .duration(CONFIG.ANIMATION_DURATION)
-            .delay(index * 50 + 200)
-            .style('opacity', 0.8);
-
-        // Parameters count
-        if (block.params > 0) {
-            blockGroup.append('text')
-                .attr('class', 'block-params')
-                .attr('x', CONFIG.BLOCK_WIDTH / 2)
-                .attr('y', 105)
-                .attr('text-anchor', 'middle')
-                .attr('fill', 'white')
-                .attr('font-size', '9px')
-                .text(formatParams(block.params))
-                .style('opacity', 0)
-                .transition()
-                .duration(CONFIG.ANIMATION_DURATION)
-                .delay(index * 50 + 250)
-                .style('opacity', 0.7);
-        }
-    });
-}
-
-// ===== BLOCK SELECTION =====
-function selectBlock(block, index) {
-    selectedBlock = block;
-
-    // Remove previous selection
-    d3.selectAll('.block-rect')
-        .transition()
-        .duration(200)
-        .attr('stroke', 'none')
-        .attr('stroke-width', 0);
-
-    // Highlight selected block
-    d3.select(`#block-${index} .block-rect`)
-        .transition()
-        .duration(200)
-        .attr('stroke', '#fbbf24')
-        .attr('stroke-width', 3)
-        .attr('transform', 'translate(0, -5)');
-
-    // Show details in side panel
-    showBlockDetails(block);
-}
-
-// ===== SIDE PANEL =====
-function showBlockDetails(block) {
-    const panel = document.getElementById('side-panel');
-    const content = document.getElementById('panel-content');
-
-    panel.classList.add('active');
-
-    let html = `
-        <div class="block-header">
-            <div class="block-title">${block.name}</div>
-            <span class="block-type">${block.type}</span>
-        </div>
-        
-        <div class="detail-section">
-            <h4>Information</h4>
-            <div class="detail-grid">
-                <div class="detail-row">
-                    <span class="detail-label">Input Shape</span>
-                    <span class="detail-value">${block.input_shape}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Output Shape</span>
-                    <span class="detail-value">${block.output_shape}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Parameters</span>
-                    <span class="detail-value">${formatParams(block.params)}</span>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // Show layers if grouped
-    if (block.layers && block.layers.length > 1) {
-        html += `
-            <div class="detail-section">
-                <h4>Layers (${block.layers.length})</h4>
-                <div class="layer-list">
-                    ${block.layers.map(layer => `
-                        <div class="layer-item">
-                            <div class="layer-item-name">${layer.name}</div>
-                            <div class="layer-item-type">${layer.type} • ${formatParams(layer.params)} params</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // Activation button
-    if (block.layers && block.layers.length > 0) {
-        const layerName = block.layers[0].name;
-        html += `
-            <button class="activation-btn" onclick="getActivations('${layerName}')">
-                <i class="fa-solid fa-eye"></i>
-                View Activations
-            </button>
-            <div id="activation-display"></div>
-        `;
-    }
-
-    content.innerHTML = html;
-}
-
-function closeSidePanel() {
-    document.getElementById('side-panel').classList.remove('active');
-    selectedBlock = null;
-
-    // Remove selection highlight
-    d3.selectAll('.block-rect')
-        .transition()
-        .duration(200)
-        .attr('stroke', 'none')
-        .attr('stroke-width', 0)
-        .attr('transform', 'translate(0, 0)');
-}
-
-// ===== ACTIVATIONS =====
-async function getActivations(layerName) {
-    const displayDiv = document.getElementById('activation-display');
-    displayDiv.innerHTML = '<div class="message info">Computing activations...</div>';
-
-    try {
-        const response = await fetch(`${CONFIG.API_BASE}/model/activation/${encodeURIComponent(layerName)}`);
+        console.log("Fetching model structure...");
+        const response = await fetch(`${API_BASE}/api/v2/model/structure`);
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || error.message || 'Failed to get activations');
+            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
+        console.log("Model structure loaded:", data);
 
-        displayDiv.innerHTML = `
-            <div class="detail-section">
-                <h4>Activation Visualization</h4>
-                <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
-                    Shape: ${data.activation_shape}
-                </div>
-                <img src="data:image/png;base64,${data.image}" alt="Layer Activations" style="margin-top: 1rem;">
-            </div>
-        `;
+        // Hide loader
+        document.getElementById('loading').style.display = 'none';
+
+        // Update header
+        document.getElementById('model-name').textContent = `Architecture: ${data.architecture}`;
+
+        // Render
+        renderArchitecture(data.blocks);
+
+        // Setup buttons
+        setupGlobalButtons();
 
     } catch (error) {
-        console.error('Error getting activations:', error);
-        displayDiv.innerHTML = `<div class="message error">${error.message}</div>`;
+        console.error("Initialization failed:", error);
+        document.getElementById('loading').innerHTML = `
+            <div style="color: #ef4444; font-size: 2rem; margin-bottom: 1rem;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div style="color: #fff;">Error loading visualization</div>
+            <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 0.5rem;">${error.message}</div>
+            <button onclick="location.reload()" style="margin-top: 1.5rem; padding: 0.5rem 1rem; border: none; background: #3b82f6; color: white; border-radius: 4px; cursor: pointer;">Retry</button>
+        `;
     }
 }
 
-// ===== UTILITY FUNCTIONS =====
-function getBlockGradient(blockType) {
-    const gradients = {
-        'InputLayer': 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
-        'Conv2D': 'linear-gradient(135deg, #2196F3 0%, #42A5F5 100%)',
-        'ConvBlock': 'linear-gradient(135deg, #2196F3 0%, #42A5F5 100%)',
-        'DepthwiseBlock': 'linear-gradient(135deg, #00BCD4 0%, #26C6DA 100%)',
-        'DenseBlock': 'linear-gradient(135deg, #9C27B0 0%, #AB47BC 100%)',
-        'Dense': 'linear-gradient(135deg, #9C27B0 0%, #AB47BC 100%)',
-        'GlobalAveragePooling2D': 'linear-gradient(135deg, #009688 0%, #26A69A 100%)',
-        'Dropout': 'linear-gradient(135deg, #795548 0%, #8D6E63 100%)',
-        'Activation': 'linear-gradient(135deg, #FF9800 0%, #FFA726 100%)',
-        'BatchNormalization': 'linear-gradient(135deg, #673AB7 0%, #7E57C2 100%)',
-    };
+function renderArchitecture(blocks) {
+    const container = document.getElementById('diagram-container');
+    container.innerHTML = '';
 
-    return gradients[blockType] || 'linear-gradient(135deg, #607D8B 0%, #78909C 100%)';
+    blocks.forEach((block, index) => {
+        // Create block element
+        const el = document.createElement('div');
+        el.className = 'model-stage';
+        el.style.animationDelay = `${index * 100}ms`;
+
+        // Determine style class based on name/type
+        let typeClass = 'block-card';
+        let icon = 'fa-layer-group';
+
+        const nameLower = block.name.toLowerCase();
+
+        if (nameLower.includes('input') || nameLower.includes('stem')) {
+            typeClass += ' block-input';
+            icon = 'fa-image';
+        } else if (nameLower.includes('dense block') || nameLower.includes('block')) {
+            typeClass += ' block-dense';
+            icon = 'fa-cubes';
+        } else if (nameLower.includes('transition')) {
+            typeClass += ' block-transition';
+            icon = 'fa-compress-arrows-alt';
+        } else if (nameLower.includes('classification') || nameLower.includes('top')) {
+            typeClass += ' block-output';
+            icon = 'fa-brain';
+        }
+
+        el.innerHTML = `
+            <div class="stage-title">Step ${index + 1}</div>
+            <div class="${typeClass}" onclick='showDetails(${JSON.stringify(block).replace(/'/g, "&#39;")})'>
+                <i class="fa-solid ${icon} block-icon"></i>
+                <div class="block-name">${block.name}</div>
+                <div class="block-meta">${block.layers.length} layers</div>
+                ${index < blocks.length - 1 ? '<div class="connector"></div>' : ''}
+            </div>
+        `;
+
+        container.appendChild(el);
+    });
 }
 
-function getBlockIcon(blockType) {
-    const icons = {
-        'InputLayer': '\uf03e',  // image
-        'Conv2D': '\uf1fc',      // paint-brush
-        'ConvBlock': '\uf1fc',
-        'DepthwiseBlock': '\uf1fc',
-        'DenseBlock': '\uf542',  // layer-group
-        'Dense': '\uf542',
-        'GlobalAveragePooling2D': '\uf0b0',  // filter
-        'Dropout': '\uf204',     // droplet
-        'Activation': '\uf06d',  // fire
-        'BatchNormalization': '\uf1de',  // sliders
-    };
-
-    return icons[blockType] || '\uf0c8';  // square
-}
-
-function formatParams(count) {
-    if (count === 0) return '0';
-    if (count < 1000) return count.toString();
-    if (count < 1000000) return (count / 1000).toFixed(1) + 'K';
-    return (count / 1000000).toFixed(1) + 'M';
-}
-
-function truncateText(text, maxLength) {
-    return text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
-}
-
-function updateStats(data) {
-    document.getElementById('stat-blocks').textContent = data.total_blocks || 0;
-
-    const totalParams = data.blocks.reduce((sum, block) => sum + (block.params || 0), 0);
-    document.getElementById('stat-params').textContent = formatParams(totalParams);
-
-    document.getElementById('model-name').textContent = data.model_name || 'CNN Model';
-}
-
-function showLoading() {
-    document.getElementById('loading-overlay').classList.remove('hidden');
-}
-
-function hideLoading() {
-    document.getElementById('loading-overlay').classList.add('hidden');
-}
-
-function showError(message) {
-    hideLoading();
+// ===== DETAILS PANEL =====
+window.showDetails = function (block) {
+    const panel = document.getElementById('side-panel');
     const content = document.getElementById('panel-content');
-    content.innerHTML = `<div class="message error">${message}</div>`;
+    const title = document.getElementById('panel-title');
+
+    // Highlight active block
+    document.querySelectorAll('.block-card').forEach(b => b.classList.remove('active'));
+    // (Ideally we would add active class to clicked element, but passing 'this' is tricky with inline onclick)
+
+    panel.classList.add('active');
+    title.textContent = block.name;
+
+    // Calculate total params for this block
+    const totalParams = block.layers.reduce((sum, l) => sum + (l.params || 0), 0);
+
+    content.innerHTML = `
+        <div class="detail-group">
+            <h4>Summary</h4>
+            <div class="info-row">
+                <span class="info-label">Type</span>
+                <span>${block.layers[0]?.type || 'Block'}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Layers</span>
+                <span>${block.layers.length}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Start Shape</span>
+                <span>${formatShape(block.layers[0]?.input_shape)}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">End Shape</span>
+                <span>${formatShape(block.layers[block.layers.length - 1]?.output_shape)}</span>
+            </div>
+        </div>
+
+        <div class="detail-group">
+            <h4>Layers in Block</h4>
+            <div class="layer-list">
+                ${block.layers.map(layer => `
+                    <div class="layer-item">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+                            <span style="font-weight:600; color: #fff;">${layer.name}</span>
+                            <span style="font-size:0.75rem; color:#64748b;">${layer.type}</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:#94a3b8;">
+                            Out: ${formatShape(layer.output_shape)}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="detail-group">
+            <h4>Activations</h4>
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                Visualizing output of last layer in block.
+            </p>
+            <button onclick="loadActivations('${block.layers[block.layers.length - 1].name}')" 
+                style="width:100%; padding:0.6rem; background: var(--accent); border:none; color:white; border-radius:6px; cursor:pointer;">
+                <i class="fa-solid fa-eye"></i> View Feature Maps
+            </button>
+            <div id="activation-container" style="min-height: 100px; display: flex; align-items: center; justify-content: center;"></div>
+        </div>
+    `;
+};
+
+window.closePanel = function () {
+    document.getElementById('side-panel').classList.remove('active');
+};
+
+// ===== ACTIVATIONS =====
+window.loadActivations = async function (layerName) {
+    const container = document.getElementById('activation-container');
+    container.innerHTML = '<div class="spinner" style="width:20px; height:20px; border-width:2px;"></div>';
+
+    try {
+        const response = await fetch(`${API_BASE}/api/v2/model/activation/${encodeURIComponent(layerName)}`);
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error);
+        if (!data.image) throw new Error("No image returned");
+
+        container.innerHTML = `
+            <div style="width:100%; margin-top:1rem;">
+                <img src="data:image/png;base64,${data.image}" class="vis-image" alt="Activations">
+                <div style="font-size:0.7rem; color:#64748b; text-align:center; margin-top:0.2rem;">
+                    Shape: ${data.activation_shape}
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        container.innerHTML = `<div style="color: #ef4444; font-size: 0.8rem; margin-top:1rem;">${e.message}</div>`;
+        if (e.message.includes('No image available')) {
+            container.innerHTML += `<div style="font-size: 0.7rem; color: #94a3b8;">Please analyze an X-ray first.</div>`;
+        }
+    }
+};
+
+// ===== GLOBAL BUTTONS (GradCAM) =====
+function setupGlobalButtons() {
+    const btnGrad = document.getElementById('btn-gradcam');
+
+    if (btnGrad) {
+        btnGrad.onclick = async () => {
+            const panel = document.getElementById('side-panel');
+            const content = document.getElementById('panel-content');
+            const title = document.getElementById('panel-title');
+
+            panel.classList.add('active');
+            title.textContent = "Grad-CAM Explanation";
+            content.innerHTML = '<div style="display:flex; justify-content:center; padding:2rem;"><div class="spinner"></div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v2/model/gradcam`);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                // Build HTML
+                content.innerHTML = `
+                    <div class="detail-group">
+                        <img src="data:image/png;base64,${data.image}" class="vis-image">
+                        <div style="margin-top: 0.5rem; text-align: center; color: #f8fafc; font-weight: 600;">
+                            Prediction: <span style="color: #f59e0b">${data.predicted_class}</span>
+                        </div>
+                        <div style="text-align: center; font-size: 0.8rem; color: #94a3b8;">
+                            Confidence: ${(data.confidence * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                    
+                    <div class="detail-group">
+                        <h4>Class Probabilities</h4>
+                        ${Object.entries(data.all_probabilities).sort(([, a], [, b]) => b - a).map(([k, v]) => `
+                            <div style="margin-bottom: 0.4rem;">
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+                                    <span>${k}</span>
+                                    <span>${(v * 100).toFixed(1)}%</span>
+                                </div>
+                                <div style="background:#334155; height:4px; border-radius:2px; margin-top:2px;">
+                                    <div style="background:${k === data.predicted_class ? '#f59e0b' : '#3b82f6'}; width:${v * 100}%; height:100%; border-radius:2px;"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                 `;
+            } catch (e) {
+                content.innerHTML = `<div style="color:#ef4444; padding:1rem;">Error: ${e.message}</div>`;
+            }
+        };
+    }
 }
 
-// Make getActivations globally available
-window.getActivations = getActivations;
+// Utility
+function formatShape(shapeStr) {
+    if (!shapeStr) return 'N/A';
+    return shapeStr.replace('None', '?').replace(/[()]/g, '');
+}
