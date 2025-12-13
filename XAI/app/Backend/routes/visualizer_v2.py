@@ -353,7 +353,7 @@ def get_model_structure():
     is_efficientnet = any('block1a_' in l.name for l in model.layers)
     is_densenet = any('dense_block' in l.name or 'conv2_block' in l.name for l in model.layers)
     
-    print(f"Architecture detection: EfficientNet={is_efficientnet}, DenseNet={is_densenet}")
+
     
     # helper to clean user-friendly names
     def get_friendly_name(layer_name):

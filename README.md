@@ -121,23 +121,23 @@ python reset_database.py
 ⚠️ **Advertencia**: Esto eliminará todos los datos incluyendo pacientes, diagnósticos y archivos subidos.
 
 
-## Visualizador CNN Interactivo V2
+## Visualizador CNN Interactivo
+ 
+ ### Acceder al Visualizador
+ 
+ 1. Navega a `http://localhost:5000/visualizer` o
+ 2. Haz clic en el Dashboard, botón "Visualizador CNN" (si disponible en el análisis)
+ 
+ ### Exploración de Arquitectura y Activaciones
+ 
+ El visualizador permite una inspección profunda del modelo EfficientNetB0:
+ 
+ ### Características
+ - **Visualización completa** de las capas del modelo
+ - **Bloques coloreados** por tipo de capa (Conv2D, Dense, BatchNorm, Dropout, etc.)
+ - **Visualización de Activaciones**: Analiza cómo cada capa transforma la radiografía.
+ - **Diseño moderno** con tema oscuro.
 
-### Acceder al Visualizador
-
-1. Navega a `http://localhost:5000/visualizer` o
-2. Haz clic en "Visualizador CNN" en el menú lateral o en la card de resultados
-
-### Version 2.0 - Diseño Horizontal Moderno
-
-El visualizador ha sido rediseñado siguiendo el estilo de Netron y TensorBoard con layout horizontal y agrupación inteligente de capas.
-
-### Agrupación Inteligente de Capas
-- **Visualización completa** de todas las ~240 capas del modelo EfficientNetB0
-- **Bloques coloreados** por tipo de capa (Conv2D, Dense, BatchNorm, Dropout, etc.)
-- **Conexiones animadas** entre capas para mostrar el flujo de datos
-- **Scroll vertical** suave para navegar por modelos profundos
-- **Diseño moderno** con tema oscuro y efectos glassmorphism
 
 #### 🔍 Exploración de Capas
 - **Clic en cualquier capa** para seleccionarla y ver información detallada:

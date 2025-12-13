@@ -2,6 +2,18 @@ from flask import Flask
 from flask_cors import CORS
 from sqlalchemy import inspect
 from models import db
+import sys
+import os
+import warnings
+
+# Suppress TensorFlow/Keras warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # FATAL
+warnings.filterwarnings('ignore', category=UserWarning, module='keras')
+warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
+
+# Add the project root to sys.path
+# BASE_DIR is already imported from config, so this line is commented out or removed if it conflicts.
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 from routes.general import bp as general_bp
 from routes.patients import bp as patients_bp

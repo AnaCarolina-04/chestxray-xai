@@ -2,12 +2,15 @@ flask==3.0.0
 flask-cors==4.0.0
 flask-sqlalchemy==3.1.1
 sqlalchemy==2.0.23
-# Critical: Numpy 1.x required for compatibility with current libs
 numpy<2.0
 pandas<2.2
 tensorflow>=2.15.0
+torch>=2.0.0
+torchvision>=0.15.0
 opencv-python-headless>=4.8.0
 Pillow>=10.0.0
 requests>=2.31.0
 werkzeug>=3.0.0
 tqdm
+scikit-learn
+matplotlib
