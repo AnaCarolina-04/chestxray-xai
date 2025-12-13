@@ -545,43 +545,29 @@ def get_model_hyperparameters():
     Return the hyperparameters used to train the model.
     Based on the training script configuration.
     """
+    # Hyperparameters & Metrics based on training configuration
     hyperparameters = {
-        "model": {
-            "base_architecture": "EfficientNetB0",
-            "input_shape": "224×224×3",
-            "output_classes": 6,
-            "output_activation": "sigmoid (multi-label)",
-            "loss_function": "binary_crossentropy"
+        "model_info": {
+            "Architecture": "EfficientNetB0",
+            "Input Shape": "(224, 224, 3)",
+            "Parameters": "~4.0M",
+            "Training Strategy": "Transfer Learning (ImageNet) + Fine Tuning"
         },
-        "training": {
-            "optimizer": "Adam",
-            "learning_rate": 0.0003123,
-            "batch_size": 64,
-            "epochs": 10,
-            "early_stopping_patience": 7,
-            "reduce_lr_patience": 4
+        "training_config": {
+            "Optimizer": "Adam",
+            "Learning Rate": "3.1e-4",
+            "Batch Size": "32",
+            "Loss Function": "Binary Crossentropy (Class Weighted)",
+            "Epochs": "30 (10 Frozen + 20 Fine-tuning)"
         },
-        "architecture": {
-            "dense_units": 512,
-            "dropout_rate": 0.307,
-            "fine_tune_layers": 100,
-            "extra_dense_layer": True,
-            "extra_layer_units": 256,
-            "extra_layer_dropout": 0.246
-        },
-        "regularization": {
-            "batch_normalization": True,
-            "dropout": True,
-            "data_augmentation": True
-        },
-        "augmentation": {
-            "brightness_range": "±20%",
-            "contrast_range": "0.8-1.2",
-            "horizontal_flip": True,
-            "vertical_flip": True,
-            "saturation_range": "0.8-1.2"
-        },
-        "classes": LABELS
+        "auc_metrics": [
+            {"label": "Effusion", "value": 0.747, "color": "#FFA500"},
+            {"label": "Cardiomegaly", "value": 0.743, "color": "#A52A2A"},
+            {"label": "Atelectasis", "value": 0.688, "color": "#008000"},
+            {"label": "Other Disease", "value": 0.637, "color": "#0000FF"},
+            {"label": "Nodule", "value": 0.479, "color": "#800080"},
+            {"label": "Infiltration", "value": 0.477, "color": "#FF0000"}
+        ]
     }
     
     return jsonify(hyperparameters)
