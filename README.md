@@ -66,22 +66,26 @@ source .venv/bin/activate
 
 ### Paso 3: Instalar Dependencias
 
+Desde el directorio raíz del proyecto:
+
 ```bash
-cd XAI/app/Backend
 pip install -r requirements.txt
 ```
 
 ### Paso 4: Inicializar Base de Datos
 
-La base de datos se creará automáticamente cuando ejecutes la aplicación por primera vez. Alternativamente, puedes inicializarla manualmente:
+La base de datos se creará automáticamente cuando ejecutes la aplicación por primera vez. Alternativamente:
 
 ```bash
+cd XAI/app/Backend
 python -c "from run import app, db; app.app_context().push(); db.create_all()"
 ```
 
 ### Paso 5: Ejecutar la Aplicación
 
 ```bash
+# Si no estás ya en el directorio Backend
+cd XAI/app/Backend
 python run.py
 ```
 
