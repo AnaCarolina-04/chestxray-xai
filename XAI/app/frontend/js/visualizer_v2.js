@@ -220,19 +220,8 @@ function setupGlobalButtons() {
                         </div>
                     </div>
                     
-                    <div class="detail-group">
-                        <h4>Class Probabilities</h4>
-                        ${Object.entries(data.all_probabilities).sort(([, a], [, b]) => b - a).map(([k, v]) => `
-                            <div style="margin-bottom: 0.4rem;">
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
-                                    <span>${k}</span>
-                                    <span>${(v * 100).toFixed(1)}%</span>
-                                </div>
-                                <div style="background:#334155; height:4px; border-radius:2px; margin-top:2px;">
-                                    <div style="background:${k === data.predicted_class ? '#f59e0b' : '#3b82f6'}; width:${v * 100}%; height:100%; border-radius:2px;"></div>
-                                </div>
-                            </div>
-                        `).join('')}
+                    <div style="text-align:center; margin-top:1rem; font-size: 0.8rem; color: #64748b;">
+                        <em>Heatmap shows regions influential to the diagnosis.</em>
                     </div>
                  `;
             } catch (e) {
@@ -244,6 +233,11 @@ function setupGlobalButtons() {
 
 // Utility
 function formatShape(shapeStr) {
-    if (!shapeStr) return 'N/A';
-    return shapeStr.replace('None', '?').replace(/[()]/g, '');
+    if (!shapeStr || shapeStr === 'N/A') return 'N/A';
+    // Remove (None, ) or (?, ) or (1, ) from start if it represents batch
+    let clean = shapeStr.replace(/[()]/g, '');
+    clean = clean.replace(/None, /g, '').replace(/\?, /g, '');
+    // If it starts with a batch dim comma separation, clean it
+    if (clean.startsWith('None,')) clean = clean.substring(5);
+    return clean;
 }

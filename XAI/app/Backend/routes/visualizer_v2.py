@@ -366,6 +366,18 @@ def get_model_structure():
         if isinstance(layer, (keras.layers.InputLayer, keras.layers.Dropout)):
             continue
             
+        # Safely get input shape with fallback
+        try:
+            in_shape = str(layer.input_shape)
+        except AttributeError:
+            try:
+                if hasattr(layer, 'input') and hasattr(layer.input, 'shape'):
+                     in_shape = str(layer.input.shape)
+                else:
+                     in_shape = "N/A"
+            except:
+                in_shape = "N/A"
+
         # Safely get output shape with fallback
         try:
             out_shape = str(layer.output_shape)
@@ -382,7 +394,9 @@ def get_model_structure():
         layer_info = {
             "name": layer.name,
             "type": layer.__class__.__name__,
-            "output_shape": out_shape
+            "input_shape": in_shape,
+            "output_shape": out_shape,
+            "params": layer.count_params()
         }
         
         # LOGIC FOR EFFICIENTNET
