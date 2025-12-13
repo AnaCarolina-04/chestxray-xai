@@ -10,8 +10,8 @@ bp = Blueprint('visualizer', __name__)
 from model_service import get_main_model, ML_AVAILABLE
 from config import FRONTEND_DIR
 
-# Import shared state for last processed image
-from shared_state import get_last_image, set_last_image
+# Import shared state from model_service (consolidated)
+from model_service import get_last_image, set_last_image
 
 # Attempt to import TensorFlow
 try:
