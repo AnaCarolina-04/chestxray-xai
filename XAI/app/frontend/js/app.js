@@ -3044,136 +3044,106 @@ function renderRecentDiagnoses(recentPredictions) {
 
 
 function renderExplainableAI() {
-    const modules = [
-        {
-            title: "¿Qué es una CNN?",
-            icon: "fa-brain",
-            description: "Una Red Neuronal Convolucional (CNN) es un tipo de IA diseñada para analizar imágenes.",
-            details: [
-                "Funciona <strong>aprendiendo patrones</strong> como líneas y formas.",
-                "Es como si 'mirara' la imagen varias veces para entenderla.",
-                "Analiza desde detalles simples hasta estructuras complejas."
-            ]
-        },
-        {
-            title: "¿Qué modelo usé?",
-            icon: "fa-layer-group",
-            description: "Usé <strong>DenseNet-121</strong>, un modelo pre-entrenado en millones de imágenes.",
-            details: [
-                "<strong>Aprende muy bien</strong> patrones visuales complejos.",
-                "<strong>Eficiente:</strong> No necesita demasiados datos.",
-                "<strong>Estándar:</strong> Muy usado en radiología médica.",
-                "Adaptado para detectar 5 enfermedades pulmonares específicas."
-            ]
-        },
-        {
-            title: "¿Qué hace con la imagen?",
-            icon: "fa-microscope",
-            description: "Proceso paso a paso desde que recibe la radiografía:",
-            details: [
-                "1. <strong>Ajusta y normaliza</strong> la imagen.",
-                "2. Busca <strong>bordes y sombras</strong> básicos.",
-                "3. Combina detalles para hallar <strong>nódulos u opacidades</strong>.",
-                "4. Decide qué enfermedades están presentes (pueden ser varias)."
-            ]
-        },
-        {
-            title: "¿Qué detecta?",
-            icon: "fa-lungs-virus",
-            description: "El modelo aprende a detectar independientemente:",
-            details: [
-                "<span class='ai-highlight'>Atelectasis</span> (Colapso pulmonar)",
-                "<span class='ai-highlight'>Effusion</span> (Derrame pleural)",
-                "<span class='ai-highlight'>Infiltration</span> (Infiltración)",
-                "<span class='ai-highlight'>Cardiomegaly</span> (Corazón agrandado)",
-                "<span class='ai-highlight'>Nodule</span> (Pequeñas masas)"
-            ]
-        },
-        {
-            title: "¿Cómo aprende?",
-            icon: "fa-graduation-cap",
-            description: "El aprendizaje se basa en la comparación constante:",
-            details: [
-                "Compara su <strong>predicción</strong> vs la <strong>realidad</strong>.",
-                "Si se equivoca, <strong>ajusta sus parámetros</strong>.",
-                "Repite esto miles de veces (epochs) hasta mejorar.",
-                "Es un proceso de prueba y error matemático masivo."
-            ]
-        },
-        {
-            title: "Transformación de Imágenes",
-            icon: "fa-image",
-            description: "Antes de entrar al modelo, la imagen se prepara:",
-            details: [
-                "Redimensión a <strong>224x224 píxeles</strong>.",
-                "Pequeños giros aleatorios para variar los datos.",
-                "Conversión a <strong>tensores</strong> (números).",
-                "<strong>Normalización</strong> para estandarizar los valores."
-            ]
-        },
-        {
-            title: "¿Por qué multietiqueta?",
-            icon: "fa-list-check",
-            description: "La realidad médica no es binaria.",
-            details: [
-                "Un paciente puede tener <strong>varias patologías</strong> a la vez.",
-                "O podría no tener ninguna (sano).",
-                "El modelo tiene <strong>5 salidas independientes</strong>.",
-                "Cada salida es una respuesta de 'Sí/No'."
-            ]
-        },
-        {
-            title: "¿Cómo se evaluó?",
-            icon: "fa-chart-line",
-            description: "Métricas clave usadas durante el entrenamiento:",
-            details: [
-                "<strong>Loss de validación:</strong> Mide qué tan bien aprende.",
-                "<strong>Predicciones Sigmoid:</strong> Probabilidades 0-1.",
-                "<strong>F1 Macro:</strong> Equilibrio entre precisión y recall.",
-                "Mientras más alto el F1, mejor rendimiento general."
-            ]
-        },
-        {
-            title: "Métricas de Validación",
-            icon: "fa-clipboard-check",
-            description: "Indicadores clínicos de rendimiento:",
-            details: [
-                "<strong>AUC-ROC:</strong> Capacidad de distinguir enfermos de sanos.",
-                "<strong>Sensibilidad:</strong> Qué tan bueno es detectando positivos.",
-                "<strong>Especificidad:</strong> Qué tan bueno es descartando negativos.",
-                "<strong>Matriz de Confusión:</strong> Visualización de aciertos vs errores."
-            ]
-        }
-    ];
-
-    const cardsHtml = modules.map((mod, index) => `
-        <div class="ai-module-card" style="animation: fadeInUp 0.5s ease-out ${index * 0.1}s backwards;">
+    // Info técnica Single-Label
+    const singleLabelInfo = `
+        <div class="ai-module-card">
             <div class="ai-module-header">
-                <h3><i class="fa-solid ${mod.icon}"></i> ${mod.title}</h3>
+                <h3><i class="fa-solid fa-server"></i> Single-Label Model (PyTorch)</h3>
             </div>
             <div class="ai-module-content">
-                <p>${mod.description}</p>
-                <ul>
-                    ${mod.details.map(detail => `<li>${detail}</li>`).join('')}
-                </ul>
+                <p>Modelo especializado para clasificar patologías específicas (Dataset y NuevoDataset).</p>
+                <div class="tech-specs">
+                     <div class="spec-row"><span>Architecture</span><span>DenseNet121 (Pretrained)</span></div>
+                     <div class="spec-row"><span>Framework</span><span>PyTorch</span></div>
+                     <div class="spec-row"><span>Batch Size</span><span>8</span></div>
+                     <div class="spec-row"><span>Learning Rate</span><span>3e-5</span></div>
+                     <div class="spec-row"><span>Optimizer</span><span>Adam + ReduceLROnPlateau</span></div>
+                     <div class="spec-row"><span>Loss Function</span><span>BCEWithLogitsLoss</span></div>
+                     <div class="spec-row"><span>Epochs</span><span>8 (Patience 2)</span></div>
+                     <div class="spec-row"><span>Augmentation</span><span>Resize, Flip, Rot(10), ColorJitter</span></div>
+                </div>
             </div>
         </div>
-    `).join('');
+    `;
+
+    // Info técnica Multi-Label
+    const multiLabelInfo = `
+        <div class="ai-module-card">
+            <div class="ai-module-header">
+                <h3><i class="fa-solid fa-layer-group"></i> Multi-Label Model (TensorFlow)</h3>
+            </div>
+            <div class="ai-module-content">
+                <p>Modelo general entrenado para detectar múltiples patologías simultáneamente.</p>
+                <div class="tech-specs">
+                     <div class="spec-row"><span>Architecture</span><span>EfficientNetB0 + Custom Head</span></div>
+                     <div class="spec-row"><span>Framework</span><span>TensorFlow / Keras</span></div>
+                     <div class="spec-row"><span>Input Size</span><span>224 x 224 x 3</span></div>
+                     <div class="spec-row"><span>Batch Size</span><span>64</span></div>
+                     <div class="spec-row"><span>Learning Rate</span><span>3.123e-4</span></div>
+                     <div class="spec-row"><span>Optimizer</span><span>Adam</span></div>
+                     <div class="spec-row"><span>Loss Function</span><span>Binary Crossentropy (Weighted)</span></div>
+                     <div class="spec-row"><span>Epochs</span><span>10 (Early Stopping Pat. 7)</span></div>
+                     <div class="spec-row"><span>Metrics</span><span>AUC, F1, Precision, Recall</span></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // ROC Curves
+    const rocInfo = `
+        <div class="ai-module-card" style="grid-column: span 2;">
+            <div class="ai-module-header">
+                <h3><i class="fa-solid fa-chart-line"></i> Performance (ROC Curves)</h3>
+            </div>
+            <div class="ai-module-content" style="text-align: center;">
+                <img src="/assets/roc_curves.png" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" 
+                     onerror="this.src='https://placehold.co/800x400/1e293b/FFF?text=ROC+Curves+Image+Missing'">
+                <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    Curvas ROC mostrando el rendimiento del modelo multi-etiqueta para cada patología.
+                </p>
+            </div>
+        </div>
+    `;
 
     return `
         <div class="ai-intro">
-            <h2>Cómo funciona esta IA</h2>
+            <h2>Modelos Utilizados</h2>
             <p style="color: var(--text-secondary); font-size: 1.1rem;">
-                Una guía interactiva para entender la tecnología detrás del diagnóstico automatizado.
+                Detalles técnicos y configuración de entrenamiento de los modelos de Inteligencia Artificial.
             </p>
         </div>
-        <div class="ai-modules-grid">
-            ${cardsHtml}
+        <div class="ai-modules-grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
+            ${singleLabelInfo}
+            ${multiLabelInfo}
+            ${rocInfo}
         </div>
         <style>
-            @keyframes fadeInUp {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
+            .tech-specs {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                margin-top: 1rem;
+            }
+            .spec-row {
+                display: flex;
+                justify-content: space-between;
+                padding-bottom: 0.25rem;
+                border-bottom: 1px solid #e2e8f0;
+                font-size: 0.9rem;
+            }
+            .spec-row span:first-child {
+                font-weight: 500;
+                color: var(--text-secondary);
+            }
+            .spec-row span:last-child {
+                font-family: monospace;
+                color: var(--primary-color);
+                font-weight: 600;
+            }
+            @media (max-width: 900px) {
+                .ai-module-card[style*="grid-column: span 2"] {
+                    grid-column: span 1 !important;
+                }
             }
         </style>
     `;

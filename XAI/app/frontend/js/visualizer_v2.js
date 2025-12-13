@@ -31,7 +31,8 @@ async function init() {
         renderArchitecture(data.blocks);
 
         // Setup buttons
-        setupModelsButton();
+        setupGlobalButtons();
+        setupHyperparamButton();
 
     } catch (error) {
         console.error("Initialization failed:", error);
@@ -188,76 +189,128 @@ window.loadActivations = async function (layerName) {
     }
 };
 
-// ===== MODELS INFO BUTTON =====
-function setupModelsButton() {
-    const btnModels = document.getElementById('btn-models');
-    if (!btnModels) return;
+// ===== GLOBAL BUTTONS (GradCAM) =====
+function setupGlobalButtons() {
+    const btnGrad = document.getElementById('btn-gradcam');
 
-    btnModels.onclick = () => {
+    if (btnGrad) {
+        btnGrad.onclick = async () => {
+            const panel = document.getElementById('side-panel');
+            const content = document.getElementById('panel-content');
+            const title = document.getElementById('panel-title');
+
+            panel.classList.add('active');
+            title.textContent = "Grad-CAM Explanation";
+            content.innerHTML = '<div style="display:flex; justify-content:center; padding:2rem;"><div class="spinner"></div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v2/model/gradcam`);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                // Build HTML
+                content.innerHTML = `
+                    <div class="detail-group">
+                        <img src="data:image/png;base64,${data.image}" class="vis-image">
+                        <div style="margin-top: 0.5rem; text-align: center; color: #f8fafc; font-weight: 600;">
+                            Prediction: <span style="color: #f59e0b">${data.predicted_class}</span>
+                        </div>
+                        <div style="text-align: center; font-size: 0.8rem; color: #94a3b8;">
+                            Confidence: ${(data.confidence * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                    
+                    <div class="detail-group">
+                        <h4>Class Probabilities</h4>
+                        ${Object.entries(data.all_probabilities).sort(([, a], [, b]) => b - a).map(([k, v]) => `
+                            <div style="margin-bottom: 0.4rem;">
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+                                    <span>${k}</span>
+                                    <span>${(v * 100).toFixed(1)}%</span>
+                                </div>
+                                <div style="background:#334155; height:4px; border-radius:2px; margin-top:2px;">
+                                    <div style="background:${k === data.predicted_class ? '#f59e0b' : '#3b82f6'}; width:${v * 100}%; height:100%; border-radius:2px;"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                 `;
+            } catch (e) {
+                content.innerHTML = `<div style="color:#ef4444; padding:1rem;">Error: ${e.message}</div>`;
+            }
+        };
+    }
+}
+
+// Utility
+function formatShape(shapeStr) {
+    if (!shapeStr) return 'N/A';
+    return shapeStr.replace('None', '?').replace(/[()]/g, '');
+}
+
+// ===== HYPERPARAMETERS =====
+function setupHyperparamButton() {
+    const btnParams = document.getElementById('btn-hyperparams');
+    if (!btnParams) return;
+
+    btnParams.onclick = async () => {
         const panel = document.getElementById('side-panel');
         const content = document.getElementById('panel-content');
         const title = document.getElementById('panel-title');
 
         panel.classList.add('active');
-        title.textContent = "Información de Modelos";
+        title.textContent = "Model Parameters & Metrics";
+        content.innerHTML = '<div style="display:flex; justify-content:center; padding:2rem;"><div class="spinner"></div></div>';
 
-        // Static Content from Training Scripts
-        content.innerHTML = `
-            <div style="margin-bottom: 2rem;">
-                <h4 style="color:var(--accent); font-size:0.9rem; margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:5px;">
-                    Multi-Label Model (EfficientNetB0)
-                </h4>
-                <div class="detail-group">
-                    <div class="info-row"><span class="info-label">Framework</span><span>TensorFlow / Keras</span></div>
-                    <div class="info-row"><span class="info-label">Architecture</span><span>EfficientNetB0 + Custom Head</span></div>
-                    <div class="info-row"><span class="info-label">Input Size</span><span>224 x 224 x 3</span></div>
-                    <div class="info-row"><span class="info-label">Batch Size</span><span>64</span></div>
-                    <div class="info-row"><span class="info-label">Learning Rate</span><span>3.123e-4</span></div>
-                    <div class="info-row"><span class="info-label">Optimizer</span><span>Adam</span></div>
-                    <div class="info-row"><span class="info-label">Loss Function</span><span>Binary Crossentropy (Weighted)</span></div>
-                    <div class="info-row"><span class="info-label">Epochs</span><span>10 (Early Stopping Pat. 7)</span></div>
-                    <div class="info-row"><span class="info-label">Augmentation</span><span>Contrast, Flip, Saturation</span></div>
-                    <div class="info-row"><span class="info-label">Metrics</span><span>AUC, F1, Precision, Recall</span></div>
-                </div>
+        try {
+            const response = await fetch(`${API_BASE}/api/v2/model/hyperparameters`);
+            const data = await response.json();
 
-                <div class="detail-group" style="margin-top: 1.5rem;">
-                    <h4>Performance (ROC Curves)</h4>
-                    <div style="background: white; padding: 5px; border-radius: 8px; margin-bottom: 0.5rem;">
-                        <img src="/assets/roc_curves.png" style="width: 100%; border-radius: 4px; display:block;" 
-                             onerror="this.src='https://placehold.co/400x300/1e293b/FFF?text=ROC+Curves+Image+Missing'">
+            let html = '';
+
+            // Model Info
+            html += `<div class="detail-group"><h4>Architecture Info</h4>`;
+            for (const [k, v] of Object.entries(data.model_info || {})) {
+                html += `<div class="info-row"><span class="info-label">${k}</span><span>${v}</span></div>`;
+            }
+            html += `</div>`;
+
+            // Training Config
+            html += `<div class="detail-group"><h4>Training Configuration</h4>`;
+            for (const [k, v] of Object.entries(data.training_config || {})) {
+                html += `<div class="info-row"><span class="info-label">${k}</span><span>${v}</span></div>`;
+            }
+            html += `</div>`;
+
+            // ROC Curves & Metrics
+            if (data.auc_metrics) {
+                html += `
+                    <div class="detail-group" style="margin-top: 2rem;">
+                        <h4>Model Performance (ROC)</h4>
+                        <div style="background: white; padding: 5px; border-radius: 8px; margin-bottom: 1rem;">
+                            <img src="/assets/roc_curves.png" style="width: 100%; border-radius: 4px; display:block;" 
+                                 onerror="this.src='https://placehold.co/400x300/1e293b/FFF?text=ROC+Curves+Image+Missing'">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem; font-size: 0.85rem;">
+                            ${data.auc_metrics.map(m => `
+                                <div style="display:flex; align-items:center; justify-content: space-between;">
+                                    <div style="display:flex; align-items:center; gap: 8px;">
+                                        <div style="width:10px; height:10px; border-radius:50%; background:${m.color}"></div>
+                                        <span style="color:#cbd5e1">${m.label}</span>
+                                    </div>
+                                    <span style="font-weight:600; color:#fff">AUC: ${m.value.toFixed(3)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
-                </div>
-            </div>
+                `;
+            }
 
-            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
-                <h4 style="color:#f59e0b; font-size:0.9rem; margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:5px;">
-                    Single-Label Models (DenseNet121)
-                </h4>
-                <div style="detail-group">
-                    <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:1rem;">
-                        Modelos especializados para patologías específicas (Dataset y NuevoDataset).
-                    </p>
-                    <div class="info-row"><span class="info-label">Framework</span><span>PyTorch</span></div>
-                    <div class="info-row"><span class="info-label">Architecture</span><span>DenseNet121 (Pretrained)</span></div>
-                    <div class="info-row"><span class="info-label">Batch Size</span><span>8</span></div>
-                    <div class="info-row"><span class="info-label">Learning Rate</span><span>3e-5</span></div>
-                    <div class="info-row"><span class="info-label">Optimizer</span><span>Adam + ReduceLROnPlateau</span></div>
-                    <div class="info-row"><span class="info-label">Loss Function</span><span>BCEWithLogitsLoss</span></div>
-                    <div class="info-row"><span class="info-label">Epochs</span><span>8 (Patience 2)</span></div>
-                    <div class="info-row"><span class="info-label">Augmentation</span><span>Resize, Flip, Rot(10), ColorJitter</span></div>
-                </div>
-            </div>
-        `;
+            content.innerHTML = html;
+
+        } catch (e) {
+            content.innerHTML = `<div style="color:#ef4444; padding:1rem;">Error: ${e.message}</div>`;
+        }
     };
-}
-
-// Utility
-function formatShape(shapeStr) {
-    if (!shapeStr || shapeStr === 'N/A') return 'N/A';
-    // Remove (None, ) or (?, ) or (1, ) from start if it represents batch
-    let clean = shapeStr.replace(/[()]/g, '');
-    clean = clean.replace(/None, /g, '').replace(/\?, /g, '');
-    // If it starts with a batch dim comma separation, clean it
-    if (clean.startsWith('None,')) clean = clean.substring(5);
-    return clean;
 }
