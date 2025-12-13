@@ -108,14 +108,19 @@ def process_existing_xray(xray_id):
     db.session.commit()
     
     return jsonify({
+        "id": prediction.id,
         "prediction_id": prediction.id,
         "xray_id": xray_id,
+        "patient_id": xray.patient_id,
         "patient_name": xray.patient.name,
         "disease_name": disease.name,
+        "corrected_disease_name": None,
         "confidence": prediction.confidence,
         "probabilities": result['probabilities'],
         "gradcam_id": gradcam.id,
         "predicted_at": prediction.predicted_at.isoformat(),
+        "upload_date": xray.upload_date.isoformat() if xray.upload_date else None,
+        "validated": False,
         "bounding_box": result.get('bounding_box')
     })
 
