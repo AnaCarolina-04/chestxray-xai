@@ -245,8 +245,12 @@ function setupGlobalButtons() {
 
 // Utility
 function formatShape(shapeStr) {
-    if (!shapeStr) return 'N/A';
-    return shapeStr.replace('None', '?').replace(/[()]/g, '');
+    if (!shapeStr || shapeStr === 'N/A') return 'N/A';
+    // Remove parentheses
+    let clean = shapeStr.replace(/[()]/g, '');
+    // Remove "None, " or "?, " from the start (batch dimension)
+    clean = clean.replace(/^(None|\?),\s*/, '');
+    return clean;
 }
 
 // ===== HYPERPARAMETERS =====
